@@ -1,2 +1,8 @@
 # 365Lab7
-My lab team build a Java JDBC application that implements an inn/hotel reservation system for our last lab in our Intro to Database systems.
+Lab completed by Parker Landsman and Ricardo Beltran 
+
+## Environmental Variables Used
+HP_JDBC_URL - JDBC URL
+HP_JDBC_USER - username for the JDBC url
+HP_JDBC_PW - password for the JDBC
+
