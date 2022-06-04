@@ -30,7 +30,7 @@ public class InnReservations {
 //       Next available check-in date.
 //       Length in days and check out date of the most recent (completed) stay in the room.
 
-    public static void RoomsAndRates() throws SQLException{
+    private static void RoomsAndRates() throws SQLException{
         System.out.println("Room and Rates");
         loadDriver();
 
@@ -61,27 +61,27 @@ public class InnReservations {
         }
     }
 
-    public static void Reservations() {
+    private static void Reservations() {
         System.out.println("2");
     }
 
-    public static void ReservationChange() {
+    private static void ReservationChange() {
         System.out.println("3");
     }
 
-    public static void ReservationCancellation() {
+    private static void ReservationCancellation() {
         System.out.println("4");
     }
 
-    public static void DetailedReservationInformation() {
+    private static void DetailedReservationInformation() {
         System.out.println("5");
     }
 
-    public static void Revenue() {
+    private static void Revenue() {
         System.out.println("6");
     }
 
-    public static void printIntro() {
+    private static void printIntro() {
         System.out.println("Welcome to our database!");
         System.out.println("To select an option from the list below, type the number to its right and press Enter\n");
         System.out.println("1:\tRooms and Rates");
