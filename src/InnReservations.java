@@ -94,9 +94,10 @@ public class InnReservations {
         }
     }
 
-    private void Reservations() throws SQLException {
+    private static void Reservations() throws SQLException {
 
         System.out.println("Reservations\r\n");
+        loadDriver();
 
         // Step 1: Establish connection to RDBMS
         try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
@@ -104,42 +105,108 @@ public class InnReservations {
                 System.getenv("HP_JDBC_PW"))) {
             // Step 2: Construct SQL statement
             Scanner scanner = new Scanner(System.in);
-            System.out.print("Enter a flavor: ");
-            String flavor = scanner.nextLine();
-            System.out.format("Until what date will %s be available (YYYY-MM-DD)? ", flavor);
-            LocalDate availDt = LocalDate.parse(scanner.nextLine());
 
-            String updateSql = "UPDATE hp_goods SET AvailUntil = ? WHERE Flavor = ?";
+            System.out.print("What's the first name? ");
+            String f_name = scanner.nextLine();
 
-            // Step 3: Start transaction
-            conn.setAutoCommit(false);
+            System.out.print("What's the last name? ");
+            String l_name = scanner.nextLine();
 
-            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+            System.out.print("What's the room code? ");
+            String room_code = scanner.nextLine();
 
-                // Step 4: Send SQL statement to DBMS
-                pstmt.setDate(1, java.sql.Date.valueOf(availDt));
-                pstmt.setString(2, flavor);
-                int rowCount = pstmt.executeUpdate();
+            System.out.print("What's the bed type? ");
+            String bed_type = scanner.nextLine();
 
-                // Step 5: Handle results
-                System.out.format("Updated %d records for %s pastries%n", rowCount, flavor);
+            System.out.print("What will be the begin date of stay (YYYY-MM-DD)? ");
+            LocalDate checkIn = LocalDate.parse(scanner.nextLine());
 
-                // Step 6: Commit or rollback transaction
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-            }
+            System.out.print("What will be the end date of stay (YYYY-MM-DD)? ");
+            LocalDate checkOut = LocalDate.parse(scanner.nextLine());
+
+            System.out.print("For how many children? ");
+            String num_children = scanner.nextLine();
+
+            System.out.print("For how many adults? ");
+            String num_adults = scanner.nextLine();
+
+//            System.out.format("Until what date will %s be available (YYYY-MM-DD)? ", flavor);
+
+
+//            String updateSql = "UPDATE hp_goods SET AvailUntil = ? WHERE Flavor = ?";
+//
+//            // Step 3: Start transaction
+//            conn.setAutoCommit(false);
+//
+//            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+//
+//                // Step 4: Send SQL statement to DBMS
+//                pstmt.setDate(1, java.sql.Date.valueOf(availDt));
+//                pstmt.setString(2, flavor);
+//                int rowCount = pstmt.executeUpdate();
+//
+//                // Step 5: Handle results
+//                System.out.format("Updated %d records for %s pastries%n", rowCount, flavor);
+//
+//                // Step 6: Commit or rollback transaction
+//                conn.commit();
+//            } catch (SQLException e) {
+//                conn.rollback();
+//            }
 
         }
         // Step 7: Close connection (handled implcitly by try-with-resources syntax)
     }
 
-    private static void ReservationChange() {
-        System.out.println("3");
+    private static void ReservationChange() throws SQLException {
+        System.out.println("Reservation Change");
     }
 
-    private static void ReservationCancellation() {
-        System.out.println("4");
+    private static void ReservationCancellation() throws SQLException {
+        System.out.println("Reservation Cancellation");
+        loadDriver();
+
+        // Step 1: Establish connection to RDBMS
+        try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
+                System.getenv("HP_JDBC_USER"),
+                System.getenv("HP_JDBC_PW"))) {
+
+            // Prompt User for Reservation Code
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("What's the reservation code? ");
+            String r_code = scanner.nextLine();
+
+            // Prompt User for confirmation to continue
+            System.out.print("Are you sure you want to cancel the reservation? ('yes' or 'no') ");
+            Boolean confirmation = scanner.nextLine().equals("yes");
+            if (confirmation) {
+                // Step 2: Construct SQL statement
+                String sqlStmt = "DELETE FROM rbeltr01.lab7_reservations\n" +
+                        "WHERE CODE = ?";
+
+                // Step 3: Start transaction
+                conn.setAutoCommit(false);
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+
+                    // Step 4: Send SQL statement to DBMS
+                    pstmt.setString(1, r_code);
+                    int rowCount = pstmt.executeUpdate();
+
+                    // Step 5: Handle results
+                    if (rowCount == 0)
+                        System.out.println("\nReservation Code not found in our records.");
+                    System.out.format("Updated %d records for reservations", rowCount);
+
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                }
+            }
+
+
+        }
     }
 
     private static void DetailedReservationInformation() {
@@ -174,7 +241,8 @@ public class InnReservations {
                 if(response == 1){
                     RoomsAndRates();
                 } else if(response == 2){
-//                    Reservations();
+                    System.out.println("Before func");
+                    Reservations();
                 } else if(response == 3){
                     ReservationChange();
                 } else if(response == 4){
@@ -188,6 +256,7 @@ public class InnReservations {
                 }else{
                     System.out.println("Number not in range of options");
                 }
+                System.out.print("\n\nChoose another option: ");
             }
             catch (SQLException e) {
                 System.err.println("SQLException: " + e.getMessage());
