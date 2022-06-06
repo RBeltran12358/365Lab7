@@ -40,7 +40,26 @@ public class InnReservations {
                 System.getenv("HP_JDBC_PW"))) {
 
             // Step 2: Construct SQL statement
-            String sqlStmt = "select RoomName from rbeltr01.lab7_rooms";
+            String sqlStmt = "select RoomCode, RoomName, Beds, bedType, maxOcc, basePrice, decor, \n" +
+                    "PopularityScore, NextAvailCheckIn, datediff(checkout, checkin) as LengthOfMostRecentStay\n" +
+                    "from \n" +
+                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                    "    join (select Room,\n" +
+                    "        round( \n" +
+                    "            sum(datediff(least(checkout,  DATE(CURRENT_TIMESTAMP)), \n" +
+                    "            greatest(checkin,  ADDDATE(DATE(CURRENT_TIMESTAMP), INTERVAL -180 DAY))))\n" +
+                    "            / 180, 2) PopularityScore, \n" +
+                    "        max(checkout) as NextAvailCheckIn\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations \n" +
+                    "    where\n" +
+                    "        checkin <= DATE(CURRENT_TIMESTAMP) AND\n" +
+                    "        checkout >=  ADDDATE(DATE(CURRENT_TIMESTAMP), INTERVAL -180 DAY)\n" +
+                    "    group by Room) t\n" +
+                    "    on r1.Room = t.Room and NextAvailCheckIn = Checkout \n" +
+                    "where\n" +
+                    "    checkout < DATE(CURRENT_TIMESTAMP)\n" +
+                    "order by PopularityScore desc; ";
 
             // Step 3: Start transaction
             conn.setAutoCommit(false);
@@ -48,15 +67,27 @@ public class InnReservations {
             try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
 
                 // Step 4: Send SQL statement to DBMS
-                boolean exRes = pstmt.execute(sqlStmt);
                 ResultSet res = pstmt.executeQuery(sqlStmt);
+                ResultSetMetaData rsmd = res.getMetaData();
+                int colCount = rsmd.getColumnCount();
 
-                while(res.next()){
-                    System.out.println(res.getString("RoomName"));
+                for (int i = 1; i < colCount; i++) {
+                    if (i > 1)
+                        System.out.print(",\t");
+                    System.out.print(rsmd.getColumnName(i));
                 }
 
-                // Step 5: Handle results
-                System.out.format("Result from ALTER: %b %n", exRes);
+
+                while (res.next()) {
+                    System.out.println("");
+                    for (int i = 1; i < colCount; i++) {
+                        if (i > 1)
+                            System.out.print(",\t\t");
+                        System.out.print(res.getString(i));
+                    }
+                }
+
+                System.out.println("");
 
                 // Step 6: Commit or rollback transaction
                 conn.commit();
@@ -65,36 +96,6 @@ public class InnReservations {
             }
         }
     }
-//private static void RoomsAndRates() throws SQLException{
-//    System.out.println("Room and Rates");
-//    loadDriver();
-//
-//    // Step 1: Establish connection to RDBMS
-//    try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
-//            System.getenv("HP_JDBC_USER"),
-//            System.getenv("HP_JDBC_PW"))) {
-//
-//        // Step 2: Construct SQL statement
-//        String sql = "select RoomName from rbeltr01.lab7_rooms";
-//
-//        // Step 3: (omitted in this example) Start transaction
-//        try (Statement stmt = conn.createStatement()) {
-//
-//            // Step 4: Send SQL statement to DBMS
-//            boolean exRes = stmt.execute(sql);
-//            ResultSet res = stmt.executeQuery(sql);
-//
-//            while(res.next()){
-//                System.out.println(res.getString("RoomName"));
-//            }
-//
-//            // Step 5: Handle results
-//            System.out.format("Result from ALTER: %b %n", exRes);
-//        }
-//
-//        // Step 6: (omitted in this example) Commit or rollback transaction
-//    }
-//}
 
     private static void Reservations() {
         System.out.println("2");
