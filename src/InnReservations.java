@@ -24,7 +24,6 @@ public class InnReservations {
         }
     }
 
-
 //    Output a list of rooms to  the  user  sorted  by  popularity  (highest  to  lowest)
 //    Include in your output all columns from the roomstable, as well as the following:
 //       Room popularity score:  number of days the room has been occupied during the previous 180 days divided by 180 (round to two decimal places)
@@ -41,24 +40,57 @@ public class InnReservations {
                 System.getenv("HP_JDBC_PW"))) {
 
             // Step 2: Construct SQL statement
-            String sql = "select RoomName from rbeltr01.lab7_rooms";
+            String sqlStmt = "select RoomCode, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, \n" +
+                    "PopularityScore, NextAvailCheckIn, datediff(checkout, checkin) as LengthOfMostRecentStay\n" +
+                    "from \n" +
+                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                    "    join (select Room,\n" +
+                    "        round( \n" +
+                    "            sum(datediff(least(checkout,  DATE(CURRENT_TIMESTAMP)), \n" +
+                    "            greatest(checkin,  ADDDATE(DATE(CURRENT_TIMESTAMP), INTERVAL -180 DAY))))\n" +
+                    "            / 180, 2) PopularityScore, \n" +
+                    "        max(checkout) as NextAvailCheckIn\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations \n" +
+                    "    where\n" +
+                    "        checkin <= DATE(CURRENT_TIMESTAMP) AND\n" +
+                    "        checkout >=  ADDDATE(DATE(CURRENT_TIMESTAMP), INTERVAL -180 DAY)\n" +
+                    "    group by Room) t\n" +
+                    "    on r1.Room = t.Room and NextAvailCheckIn = Checkout \n" +
+                    "where\n" +
+                    "    checkout < DATE(CURRENT_TIMESTAMP)\n" +
+                    "order by PopularityScore desc; ";
 
-            // Step 3: (omitted in this example) Start transaction
-            try (Statement stmt = conn.createStatement()) {
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
 
                 // Step 4: Send SQL statement to DBMS
-                boolean exRes = stmt.execute(sql);
-                ResultSet res = stmt.executeQuery(sql);
+                ResultSet res = pstmt.executeQuery(sqlStmt);
+                ResultSetMetaData rsmd = res.getMetaData();
+                int colCount = rsmd.getColumnCount();
 
-                while(res.next()){
-                    System.out.println(res.getString("RoomName"));
+                for (int i = 1; i < colCount; i++) {
+                    System.out.printf("%-30s", rsmd.getColumnName(i));
                 }
 
-                // Step 5: Handle results
-                System.out.format("Result from ALTER: %b %n", exRes);
-            }
+                System.out.println("");
 
-            // Step 6: (omitted in this example) Commit or rollback transaction
+                while (res.next()) {
+                    System.out.println("");
+                    for (int i = 1; i < colCount; i++) {
+                        System.out.printf("%-30s", res.getString(i));
+                    }
+                }
+
+                System.out.println("");
+
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
         }
     }
 
