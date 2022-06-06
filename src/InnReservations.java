@@ -48,8 +48,45 @@ public class InnReservations {
         // Step 7: Close connection (handled by try-with-resources syntax)
     }
 
-    public static void Reservations() {
-        System.out.println("2");
+    // Demo4 - Establish JDBC connection, execute DML query (UPDATE) using PreparedStatement / transaction
+    private void Reservations() throws SQLException {
+
+        System.out.println("Reservations Test\r\n");
+
+        // Step 1: Establish connection to RDBMS
+        try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
+                System.getenv("HP_JDBC_USER"),
+                System.getenv("HP_JDBC_PW"))) {
+            // Step 2: Construct SQL statement
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter a flavor: ");
+            String flavor = scanner.nextLine();
+            System.out.format("Until what date will %s be available (YYYY-MM-DD)? ", flavor);
+            LocalDate availDt = LocalDate.parse(scanner.nextLine());
+
+            String updateSql = "UPDATE hp_goods SET AvailUntil = ? WHERE Flavor = ?";
+
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
+
+                // Step 4: Send SQL statement to DBMS
+                pstmt.setDate(1, java.sql.Date.valueOf(availDt));
+                pstmt.setString(2, flavor);
+                int rowCount = pstmt.executeUpdate();
+
+                // Step 5: Handle results
+                System.out.format("Updated %d records for %s pastries%n", rowCount, flavor);
+
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+
+        }
+        // Step 7: Close connection (handled implcitly by try-with-resources syntax)
     }
 
     public static void ReservationChange() {
