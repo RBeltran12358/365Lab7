@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 
@@ -23,7 +24,6 @@ public class InnReservations {
         }
     }
 
-
 //    Output a list of rooms to  the  user  sorted  by  popularity  (highest  to  lowest)
 //    Include in your output all columns from the roomstable, as well as the following:
 //       Room popularity score:  number of days the room has been occupied during the previous 180 days divided by 180 (round to two decimal places)
@@ -40,14 +40,16 @@ public class InnReservations {
                 System.getenv("HP_JDBC_PW"))) {
 
             // Step 2: Construct SQL statement
-            String sql = "select RoomName from rbeltr01.lab7_rooms";
+            String sqlStmt = "select RoomName from rbeltr01.lab7_rooms";
 
-            // Step 3: (omitted in this example) Start transaction
-            try (Statement stmt = conn.createStatement()) {
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
 
                 // Step 4: Send SQL statement to DBMS
-                boolean exRes = stmt.execute(sql);
-                ResultSet res = stmt.executeQuery(sql);
+                boolean exRes = pstmt.execute(sqlStmt);
+                ResultSet res = pstmt.executeQuery(sqlStmt);
 
                 while(res.next()){
                     System.out.println(res.getString("RoomName"));
@@ -55,11 +57,44 @@ public class InnReservations {
 
                 // Step 5: Handle results
                 System.out.format("Result from ALTER: %b %n", exRes);
-            }
 
-            // Step 6: (omitted in this example) Commit or rollback transaction
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
         }
     }
+//private static void RoomsAndRates() throws SQLException{
+//    System.out.println("Room and Rates");
+//    loadDriver();
+//
+//    // Step 1: Establish connection to RDBMS
+//    try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
+//            System.getenv("HP_JDBC_USER"),
+//            System.getenv("HP_JDBC_PW"))) {
+//
+//        // Step 2: Construct SQL statement
+//        String sql = "select RoomName from rbeltr01.lab7_rooms";
+//
+//        // Step 3: (omitted in this example) Start transaction
+//        try (Statement stmt = conn.createStatement()) {
+//
+//            // Step 4: Send SQL statement to DBMS
+//            boolean exRes = stmt.execute(sql);
+//            ResultSet res = stmt.executeQuery(sql);
+//
+//            while(res.next()){
+//                System.out.println(res.getString("RoomName"));
+//            }
+//
+//            // Step 5: Handle results
+//            System.out.format("Result from ALTER: %b %n", exRes);
+//        }
+//
+//        // Step 6: (omitted in this example) Commit or rollback transaction
+//    }
+//}
 
     private static void Reservations() {
         System.out.println("2");
