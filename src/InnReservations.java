@@ -40,7 +40,7 @@ public class InnReservations {
                 System.getenv("HP_JDBC_PW"))) {
 
             // Step 2: Construct SQL statement
-            String sqlStmt = "select RoomCode, RoomName, Beds, bedType, maxOcc, basePrice, decor, \n" +
+            String sqlStmt = "select RoomCode, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, \n" +
                     "PopularityScore, NextAvailCheckIn, datediff(checkout, checkin) as LengthOfMostRecentStay\n" +
                     "from \n" +
                     "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
@@ -72,18 +72,15 @@ public class InnReservations {
                 int colCount = rsmd.getColumnCount();
 
                 for (int i = 1; i < colCount; i++) {
-                    if (i > 1)
-                        System.out.print(",\t");
-                    System.out.print(rsmd.getColumnName(i));
+                    System.out.printf("%-30s", rsmd.getColumnName(i));
                 }
 
+                System.out.println("");
 
                 while (res.next()) {
                     System.out.println("");
                     for (int i = 1; i < colCount; i++) {
-                        if (i > 1)
-                            System.out.print(",\t\t");
-                        System.out.print(res.getString(i));
+                        System.out.printf("%-30s", res.getString(i));
                     }
                 }
 
