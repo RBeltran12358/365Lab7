@@ -26,12 +26,6 @@ public class InnReservations {
         }
     }
 
-//    Output a list of rooms to  the  user  sorted  by  popularity  (highest  to  lowest)
-//    Include in your output all columns from the roomstable, as well as the following:
-//       Room popularity score:  number of days the room has been occupied during the previous 180 days divided by 180 (round to two decimal places)
-//       Next available check-in date.
-//       Length in days and check out date of the most recent (completed) stay in the room.
-
     private static void RoomsAndRates() throws SQLException{
         System.out.println("Room and Rates");
         loadDriver();
@@ -178,9 +172,9 @@ public class InnReservations {
 
             // Prompt User for confirmation to continue
             System.out.println("\nFor the following fields, type the new value or type 'none' for zero changes to that field");
-            System.out.print("What's the updated First Name? ");
+            System.out.print("What's the updated first name? ");
             String firstName = scanner.nextLine();
-            System.out.print("What's the updated Last Name? ");
+            System.out.print("What's the updated last name? ");
             String lastName = scanner.nextLine();
 
             System.out.print("What's the updated begin date (YYYY-MM-DD)? ");
@@ -332,17 +326,313 @@ public class InnReservations {
                     conn.rollback();
                 }
             }
-
-
         }
     }
 
-    private static void DetailedReservationInformation() {
-        System.out.println("5");
+    private static void DetailedReservationInformation() throws SQLException {
+        System.out.println("Detailed Reservation Information");
+        loadDriver();
+
+        // Step 1: Establish connection to RDBMS
+        try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
+                System.getenv("HP_JDBC_USER"),
+                System.getenv("HP_JDBC_PW"))) {
+
+            // Prompt User for Reservation Code
+            System.out.println("\nFor the following fields, type the values you want to be included in search or type 'any'");
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("What's the first name? ");
+            String f_name = scanner.nextLine();
+
+            System.out.print("What's the last name? ");
+            String l_name = scanner.nextLine();
+
+            System.out.print("What is the check in date (YYYY-MM-DD)? ");
+            String checkInStr = scanner.nextLine();
+            LocalDate checkIn;
+            if(!checkInStr.equals("any"))
+                checkIn = LocalDate.parse(checkInStr);
+
+            System.out.print("What is the checkout date (YYYY-MM-DD)? ");
+            String checkOutStr = scanner.nextLine();
+            LocalDate checkOut;
+            if(!checkOutStr.equals("any"))
+                checkOut = LocalDate.parse(checkOutStr);
+
+            System.out.print("What's the room code? ");
+            String room_code = scanner.nextLine();
+
+            System.out.print("What's the reservation code? ");
+            String res_code = scanner.nextLine();
+
+            // Step 2: Construct SQL statement
+            String sqlStmt = "select *\n" +
+                    "from \n" +
+                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                    "where\n" +
+                    "    FirstName LIKE ? AND\n" +
+                    "    LastName LIKE ? AND\n" +
+                    "    CheckIn LIKE ? AND\n" +
+                    "    Checkout LIKE ? AND\n" +
+                    "    Room LIKE ? AND\n" +
+                    "    Code LIKE ?;";
+
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                // Inject field values
+                if(!f_name.equals("any"))
+                    pstmt.setString(1, "%" + f_name);
+                else
+                    pstmt.setString(1, "%");
+
+                if(!l_name.equals("any"))
+                    pstmt.setString(2, "%" + l_name);
+                else
+                    pstmt.setString(2, "%");
+
+                if(!checkInStr.equals("any"))
+                    pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
+                else
+                    pstmt.setString(3, "%");
+
+                if(!checkOutStr.equals("any"))
+                    pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
+                else
+                    pstmt.setString(4, "%");
+
+                if(!room_code.equals("any"))
+                    pstmt.setString(5, "%" + room_code);
+                else
+                    pstmt.setString(5, "%");
+
+                if(!room_code.equals("any"))
+                    pstmt.setString(6, "%" + res_code);
+                else
+                    pstmt.setString(6, "%");
+
+                // Step 4: Send SQL statement to DBMS
+                ResultSet res = pstmt.executeQuery();
+                ResultSetMetaData rsmd = res.getMetaData();
+                int count = rsmd.getColumnCount();
+
+                while (res.next()) {
+                    System.out.println("");
+                    for (int i = 1; i < count; i++) {
+                        System.out.printf("%-30s", rsmd.getColumnName(i));
+                    }
+                    System.out.println("");
+                    for (int i = 1; i < count; i++) {
+                        System.out.printf("%-30s", res.getString(i));
+                    }
+                }
+
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    private static void Revenue() {
-        System.out.println("6");
+    private static void Revenue() throws SQLException {
+        System.out.println("Revenue");
+        loadDriver();
+
+        // Step 1: Establish connection to RDBMS
+        try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
+                System.getenv("HP_JDBC_USER"),
+                System.getenv("HP_JDBC_PW"))) {
+
+            // Step 2: Construct SQL statement
+            String sqlStmt = "select r.Room, COALESCE(Jan,0) Jan, COALESCE(Feb,0) Feb, COALESCE(March,0) March, COALESCE(April,0) April, COALESCE(May,0) May, COALESCE(June,0) June, COALESCE(July,0) July, COALESCE(Aug,0) Aug, COALESCE(Sep,0) Sep, COALESCE(Oct,0) Oct, COALESCE(Nov,0) Nov, COALESCE(Decem,0) 'Dec', \n" +
+                    "    (COALESCE(Jan,0) + COALESCE(Feb,0) + COALESCE(March,0) + COALESCE(April,0) + COALESCE(May,0) + COALESCE(June,0) + COALESCE(July,0) + COALESCE(Aug,0) + COALESCE(Sep,0) + COALESCE(Oct,0) + COALESCE(Nov,0) + COALESCE(Decem,0)) as Total\n" +
+                    "from \n" +
+                    "    (select Room \n" +
+                    "    from rbeltr01.lab7_reservations\n" +
+                    "    group by Room) r\n" +
+                    "    \n" +
+                    "    LEFT JOIN \n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as Jan\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '1' AND month(r1.checkout) >= '1'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) jan\n" +
+                    "\n" +
+                    "    on r.Room = jan.room\n" +
+                    "    \n" +
+                    "    LEFT JOIN \n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 28) * rate) as Feb\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '2' AND month(r1.checkout) >= '2'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) feb\n" +
+                    "    \n" +
+                    "    on r.Room = feb.room\n" +
+                    "    \n" +
+                    "    LEFT JOIN \n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as March\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '3' AND month(r1.checkout) >= '3'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) march\n" +
+                    "    \n" +
+                    "    on r.Room = march.room\n" +
+                    "    \n" +
+                    "    LEFT JOIN \n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 30) * rate) as April\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '4' AND month(r1.checkout) >= '4'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) april\n" +
+                    "    \n" +
+                    "    on r.Room = april.room\n" +
+                    "    \n" +
+                    "    LEFT JOIN \n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as May\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '5' AND month(r1.checkout) >= '5'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) may\n" +
+                    "    \n" +
+                    "    on r.Room = may.room\n" +
+                    "    \n" +
+                    "    LEFT JOIN \n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 30) * rate) as June\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '6' AND month(r1.checkout) >= '6'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) june\n" +
+                    "    \n" +
+                    "    on r.Room = june.room\n" +
+                    "    \n" +
+                    "    LEFT join\n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as July\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '7' AND month(r1.checkout) >= '7'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) july \n" +
+                    "    \n" +
+                    "    on r.Room = july.room\n" +
+                    "    \n" +
+                    "    LEFT join\n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as Aug\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '8' AND month(r1.checkout) >= '8'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) aug\n" +
+                    "    \n" +
+                    "    on r.Room = aug.room\n" +
+                    "    \n" +
+                    "    LEFT join\n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 30) * rate) as Sep\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '9' AND month(r1.checkout) >= '9'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) sep \n" +
+                    "    \n" +
+                    "    on r.Room = sep.room\n" +
+                    "    \n" +
+                    "    \n" +
+                    "    LEFT join\n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as Oct\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '10' AND month(r1.checkout) >= '10'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) oct\n" +
+                    "    \n" +
+                    "    on r.Room = oct.room\n" +
+                    "    \n" +
+                    "    LEFT join\n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 30) * rate) as Nov\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '11' AND month(r1.checkout) >= '11'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) nov\n" +
+                    "    \n" +
+                    "    on r.Room = nov.room\n" +
+                    "    \n" +
+                    "    LEFT join\n" +
+                    "    \n" +
+                    "    (select r1.room, sum(least(datediff(checkout, checkin), 31) * rate) as Decem\n" +
+                    "    from \n" +
+                    "        rbeltr01.lab7_reservations r1\n" +
+                    "    where\n" +
+                    "        month(r1.checkIn) <= '12' AND month(r1.checkout) >= '12'\n" +
+                    "        AND year(r1.checkIn) = YEAR(DATE(CURRENT_TIMESTAMP))\n" +
+                    "    group by room) decem\n" +
+                    "    \n" +
+                    "    on r.Room = decem.room;";
+
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+
+                // Step 4: Send SQL statement to DBMS
+                ResultSet res = pstmt.executeQuery(sqlStmt);
+                ResultSetMetaData rsmd = res.getMetaData();
+                int colCount = rsmd.getColumnCount();
+
+                for (int i = 1; i < colCount; i++) {
+                    System.out.printf("%-30s", rsmd.getColumnName(i));
+                }
+
+                System.out.println("");
+
+                while (res.next()) {
+                    System.out.println("");
+                    for (int i = 1; i < colCount; i++) {
+                        System.out.printf("%-30s", res.getString(i));
+                    }
+                }
+
+                System.out.println("");
+
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+        }
+
+
     }
 
     private static void printIntro() {
