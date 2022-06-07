@@ -412,28 +412,21 @@ public class InnReservations {
                 else
                     pstmt.setString(6, "%");
 
-
                 // Step 4: Send SQL statement to DBMS
                 ResultSet res = pstmt.executeQuery();
                 ResultSetMetaData rsmd = res.getMetaData();
                 int count = rsmd.getColumnCount();
 
-                System.out.println("");
-
-                for (int i = 1; i < count; i++) {
-                    System.out.printf("%-30s", rsmd.getColumnName(i));
-                }
-
-                System.out.println("");
-
                 while (res.next()) {
+                    System.out.println("");
+                    for (int i = 1; i < count; i++) {
+                        System.out.printf("%-30s", rsmd.getColumnName(i));
+                    }
                     System.out.println("");
                     for (int i = 1; i < count; i++) {
                         System.out.printf("%-30s", res.getString(i));
                     }
                 }
-
-                System.out.println("");
 
                 // Step 6: Commit or rollback transaction
                 conn.commit();
