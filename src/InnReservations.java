@@ -348,10 +348,16 @@ public class InnReservations {
             String l_name = scanner.nextLine();
 
             System.out.print("What is the check in date (YYYY-MM-DD)? ");
-            LocalDate checkIn = LocalDate.parse(scanner.nextLine());
+            String checkInStr = scanner.nextLine();
+            LocalDate checkIn;
+            if(!checkInStr.equals("any"))
+                checkIn = LocalDate.parse(checkInStr);
 
             System.out.print("What is the checkout date (YYYY-MM-DD)? ");
-            LocalDate checkOut = LocalDate.parse(scanner.nextLine());
+            String checkOutStr = scanner.nextLine();
+            LocalDate checkOut;
+            if(!checkOutStr.equals("any"))
+                checkOut = LocalDate.parse(checkOutStr);
 
             System.out.print("What's the room code? ");
             String room_code = scanner.nextLine();
@@ -386,13 +392,13 @@ public class InnReservations {
                 else
                     pstmt.setString(2, "%");
 
-                if(!checkIn.equals("any"))
-                    pstmt.setDate(3, java.sql.Date.valueOf(checkIn));
+                if(!checkInStr.equals("any"))
+                    pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
                 else
                     pstmt.setString(3, "%");
 
-                if(!checkOut.equals("any"))
-                    pstmt.setDate(4, java.sql.Date.valueOf(checkOut));
+                if(!checkOutStr.equals("any"))
+                    pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
                 else
                     pstmt.setString(4, "%");
 
