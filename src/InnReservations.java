@@ -375,13 +375,46 @@ public class InnReservations {
             conn.setAutoCommit(false);
 
             try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                // Inject field values
+                if(!f_name.equals("any"))
+                    pstmt.setString(1, "%" + f_name);
+                else
+                    pstmt.setString(1, "%");
+
+                if(!l_name.equals("any"))
+                    pstmt.setString(2, "%" + l_name);
+                else
+                    pstmt.setString(2, "%");
+
+                if(!checkIn.equals("any"))
+                    pstmt.setDate(3, java.sql.Date.valueOf(checkIn));
+                else
+                    pstmt.setString(3, "%");
+
+                if(!checkOut.equals("any"))
+                    pstmt.setDate(4, java.sql.Date.valueOf(checkOut));
+                else
+                    pstmt.setString(4, "%");
+
+                if(!room_code.equals("any"))
+                    pstmt.setString(5, "%" + room_code);
+                else
+                    pstmt.setString(5, "%");
+
+                if(!room_code.equals("any"))
+                    pstmt.setString(6, "%" + res_code);
+                else
+                    pstmt.setString(6, "%");
+
 
                 // Step 4: Send SQL statement to DBMS
-                ResultSet res = pstmt.executeQuery(sqlStmt);
+                ResultSet res = pstmt.executeQuery();
                 ResultSetMetaData rsmd = res.getMetaData();
-                int colCount = rsmd.getColumnCount();
+                int count = rsmd.getColumnCount();
 
-                for (int i = 1; i < colCount; i++) {
+                System.out.println("");
+
+                for (int i = 1; i < count; i++) {
                     System.out.printf("%-30s", rsmd.getColumnName(i));
                 }
 
@@ -389,7 +422,7 @@ public class InnReservations {
 
                 while (res.next()) {
                     System.out.println("");
-                    for (int i = 1; i < colCount; i++) {
+                    for (int i = 1; i < count; i++) {
                         System.out.printf("%-30s", res.getString(i));
                     }
                 }
