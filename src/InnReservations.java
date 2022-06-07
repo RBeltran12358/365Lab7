@@ -26,12 +26,6 @@ public class InnReservations {
         }
     }
 
-//    Output a list of rooms to  the  user  sorted  by  popularity  (highest  to  lowest)
-//    Include in your output all columns from the roomstable, as well as the following:
-//       Room popularity score:  number of days the room has been occupied during the previous 180 days divided by 180 (round to two decimal places)
-//       Next available check-in date.
-//       Length in days and check out date of the most recent (completed) stay in the room.
-
     private static void RoomsAndRates() throws SQLException{
         System.out.println("Room and Rates");
         loadDriver();
@@ -178,9 +172,9 @@ public class InnReservations {
 
             // Prompt User for confirmation to continue
             System.out.println("\nFor the following fields, type the new value or type 'none' for zero changes to that field");
-            System.out.print("What's the updated First Name? ");
+            System.out.print("What's the updated first name? ");
             String firstName = scanner.nextLine();
-            System.out.print("What's the updated Last Name? ");
+            System.out.print("What's the updated last name? ");
             String lastName = scanner.nextLine();
 
             System.out.print("What's the updated begin date (YYYY-MM-DD)? ");
@@ -332,13 +326,84 @@ public class InnReservations {
                     conn.rollback();
                 }
             }
-
-
         }
     }
 
-    private static void DetailedReservationInformation() {
-        System.out.println("5");
+    private static void DetailedReservationInformation() throws SQLException {
+        System.out.println("Detailed Reservation Information");
+        loadDriver();
+
+        // Step 1: Establish connection to RDBMS
+        try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
+                System.getenv("HP_JDBC_USER"),
+                System.getenv("HP_JDBC_PW"))) {
+
+            // Prompt User for Reservation Code
+            System.out.println("\nFor the following fields, type the values you want to be included in search or type 'any'");
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("What's the first name? ");
+            String f_name = scanner.nextLine();
+
+            System.out.print("What's the last name? ");
+            String l_name = scanner.nextLine();
+
+            System.out.print("What is the check in date (YYYY-MM-DD)? ");
+            LocalDate checkIn = LocalDate.parse(scanner.nextLine());
+
+            System.out.print("What is the checkout date (YYYY-MM-DD)? ");
+            LocalDate checkOut = LocalDate.parse(scanner.nextLine());
+
+            System.out.print("What's the room code? ");
+            String room_code = scanner.nextLine();
+
+            System.out.print("What's the reservation code? ");
+            String res_code = scanner.nextLine();
+
+            // Step 2: Construct SQL statement
+            String sqlStmt = "select *\n" +
+                    "from \n" +
+                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                    "where\n" +
+                    "    FirstName LIKE ? AND\n" +
+                    "    LastName LIKE ? AND\n" +
+                    "    CheckIn LIKE ? AND\n" +
+                    "    Checkout LIKE ? AND\n" +
+                    "    Room LIKE ? AND\n" +
+                    "    Code LIKE ?;";
+
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+
+                // Step 4: Send SQL statement to DBMS
+                ResultSet res = pstmt.executeQuery(sqlStmt);
+                ResultSetMetaData rsmd = res.getMetaData();
+                int colCount = rsmd.getColumnCount();
+
+                for (int i = 1; i < colCount; i++) {
+                    System.out.printf("%-30s", rsmd.getColumnName(i));
+                }
+
+                System.out.println("");
+
+                while (res.next()) {
+                    System.out.println("");
+                    for (int i = 1; i < colCount; i++) {
+                        System.out.printf("%-30s", res.getString(i));
+                    }
+                }
+
+                System.out.println("");
+
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void Revenue() {
