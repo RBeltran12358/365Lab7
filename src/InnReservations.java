@@ -417,15 +417,15 @@ public class InnReservations {
                 ResultSetMetaData rsmd = res.getMetaData();
                 int count = rsmd.getColumnCount();
 
+                for (int i = 1; i < count; i++)
+                    System.out.printf("%-30s", rsmd.getColumnName(i));
+                System.out.println("");
+
+
                 while (res.next()) {
                     System.out.println("");
-                    for (int i = 1; i < count; i++) {
-                        System.out.printf("%-30s", rsmd.getColumnName(i));
-                    }
-                    System.out.println("");
-                    for (int i = 1; i < count; i++) {
+                    for (int i = 1; i < count; i++)
                         System.out.printf("%-30s", res.getString(i));
-                    }
                 }
 
                 // Step 6: Commit or rollback transaction
@@ -617,7 +617,6 @@ public class InnReservations {
                 System.out.println("");
 
                 while (res.next()) {
-                    System.out.println("");
                     for (int i = 1; i < colCount; i++) {
                         System.out.printf("%-30s", res.getString(i));
                     }
