@@ -156,9 +156,8 @@ public class InnReservations {
 
     private static void ReservationChange() throws SQLException {
         System.out.println("Reservation Change");
-//        If there is a conflict with the begin date and or end date, do we cancel the change
-//        or change the other values still? I'd assume no change is made to anything
         loadDriver();
+        Boolean modified = false;
 
         // Step 1: Establish connection to RDBMS
         try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
@@ -168,7 +167,7 @@ public class InnReservations {
             // Prompt User for Reservation Code
             Scanner scanner = new Scanner(System.in);
             System.out.print("What's the reservation code? ");
-            String r_code = scanner.nextLine();
+            String res_code = scanner.nextLine();
 
             // Prompt User for confirmation to continue
             System.out.println("\nFor the following fields, type the new value or type 'none' for zero changes to that field");
@@ -188,99 +187,161 @@ public class InnReservations {
             System.out.print("What's the updated number of adults? ");
             String numAdults = scanner.nextLine();
 
-
             // Step 2: Construct SQL statement
             String sqlStmtLeft = "UPDATE rbeltr01.lab7_reservations SET";
             String sqlStmtRight = " WHERE CODE = ?";
+
             // Modify setConditions based on what was given, and what works with existing data
-            if(!firstName.equals("none"))
-                sqlStmtLeft += " FirstName = ?," ;
+            if(!firstName.equals("none")) {
+                sqlStmtLeft += " FirstName = ?,";
+                modified = true;
+            }
 
-            if (!lastName.equals("none"))
+            if (!lastName.equals("none")){
                 sqlStmtLeft += " LastName = ?,";
+                modified = true;
+            }
 
-            if (!numChildren.equals("none"))
+            if (!numChildren.equals("none")){
                 sqlStmtLeft += " Kids = ?,";
-
-            if (!numAdults.equals("none"))
+                modified = true;
+            }
+            if (!numAdults.equals("none")){
                 sqlStmtLeft += " Adults = ?,";
+                modified = true;
+            }
 
             if (!checkInStr.equals("none")){
                 // Have more logic for checking conflicts ......
-                LocalDate checkIn = LocalDate.parse(checkInStr);
                 sqlStmtLeft += " CheckIn = ?,";
+                modified = true;
             }
 
             if (!checkOutStr.equals("none")){
                 // Have more logic for checking conflicts ......
-                LocalDate checkOut = LocalDate.parse(checkOutStr);
                 sqlStmtLeft += " Checkout = ?,";
+                modified = true;
             }
 
             // Step 3: Start transaction
             conn.setAutoCommit(false);
 
-            String sqlStmt = sqlStmtLeft.substring(0,sqlStmtLeft.length() - 1) + sqlStmtRight;
+            if (modified){
+                String sqlStmt = sqlStmtLeft.substring(0,sqlStmtLeft.length() - 1) + sqlStmtRight;
+                System.out.println(sqlStmt);
 
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
 
-                // Step 4: Send SQL statement to DBMS
-                int pos = 1;
+                    // Step 4: Send SQL statement to DBMS
+                    int pos = 1;
 
-                if(!firstName.equals("none")){
-                    pstmt.setString(pos, firstName);
-                    pos++;
-                }
+                    if(!firstName.equals("none")){
+                        pstmt.setString(pos, firstName);
+                        pos++;
+                    }
 
-                if (!lastName.equals("none")){
-                    pstmt.setString(pos, lastName);
-                    pos++;
-                }
+                    if (!lastName.equals("none")){
+                        pstmt.setString(pos, lastName);
+                        pos++;
+                    }
 
-                if (!numChildren.equals("none")){
-                    pstmt.setInt(pos, Integer.parseInt(numChildren));
-                    pos++;
-                }
+                    if (!numChildren.equals("none")){
+                        pstmt.setInt(pos, Integer.parseInt(numChildren));
+                        pos++;
+                    }
 
-                if (!numAdults.equals("none")){
-                    pstmt.setInt(pos, Integer.parseInt(numAdults));
-                    pos++;
-                }
+                    if (!numAdults.equals("none")){
+                        pstmt.setInt(pos, Integer.parseInt(numAdults));
+                        pos++;
+                    }
 
-                // My mortal enemies, Cannot resolve method 'setDate(java.sql.Date)' HUHHHHHH
-//                if (!checkInStr.equals("none")){
-//                    // Have more logic for checking conflicts ......
-//                    LocalDate checkIn = LocalDate.parse(checkInStr);
-//                    pstmt.setDate(java.sql.Date.valueOf(checkIn));
-//                    pstmt.set
-//                    pos++;
-//                    java.sql.Date.valueOf(checkIn);
+                    ///////////////////////////////////////////////////////////////////////////////
+                    if (!checkInStr.equals("none")){
+                        pstmt.setDate(pos, java.sql.Date.valueOf(checkInStr));
+                        pos++;
+                    }
+
+                    if (!checkOutStr.equals("none")){
+                        pstmt.setDate(pos, java.sql.Date.valueOf(checkOutStr));
+                        pos++;
+                    }
+
+                    pstmt.setInt(pos, Integer.parseInt(res_code));
+
+                    // Step 4: Send SQL statement to DBMS
+                    int rowCount = pstmt.executeUpdate();
+
+                    // Step 5: Handle results
+                    if (rowCount == 0)
+                        System.out.println("\nReservation Code not found in our records. Please try again");
+                    System.out.format("Updated %d records for reservations", rowCount);
+
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
+//                        System.out.println("Error: Dates conflicting with existing reservations")
+                    ///////////////////////////////////////////////////////////////////////////////
+
+                    // Check for conflicts
+                    // if there are conflicts, say there was an issue, exit, dont' change anything
+                    // if no conflicts, run query
+
+//                String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations \n" +
+//                        "where (Checkout > ? and Checkout < ?) \n" +
+//                        "    or (CheckIn > ? and CheckIn < ?)";
+
+//                try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
+//                    conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
+//                    conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
+//                    conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
+//                    conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
+//
+//                    int conflict_rowCount = conflicts_pstmt.executeUpdate();
+//
+//                    // Step 5: Handle results
+//                    if (conflict_rowCount == 0){
+//                        System.out.println("Error: Dates conflicting with existing reservations");
+//                    } else {
+//                        if (!checkInStr.equals("none")){
+//                            pstmt.setDate(pos, java.sql.Date.valueOf(checkInStr));
+//                            pos++;
+//                        }
+//
+//                        if (!checkOutStr.equals("none")){
+//                            pstmt.setDate(pos, java.sql.Date.valueOf(checkOutStr));
+//                            pos++;
+//                        }
+//
+//                        // Step 4: Send SQL statement to DBMS
+//                        ResultSet res = pstmt.executeQuery(sqlStmt);
+//                        ResultSetMetaData rsmd = res.getMetaData();
+//                        int colCount = rsmd.getColumnCount();
+//
+//                        for (int i = 1; i < colCount; i++) {
+//                            System.out.printf("%-30s", rsmd.getColumnName(i));
+//                        }
+//
+//                        System.out.println("");
+//
+//                        while (res.next()) {
+//                            System.out.println("");
+//                            for (int i = 1; i < colCount; i++) {
+//                                System.out.printf("%-30s", res.getString(i));
+//                            }
+//                        }
+//
+//                        System.out.println("Finished Successfully?......");
+//
+//                        // Step 6: Commit or rollback transaction
+//
+//                        conn.commit();
+//                    }
+//                } catch (SQLException e) {
+//                    conn.rollback();
 //                }
-//
-//                if (!checkOutStr.equals("none")){
-//                    // Have more logic for checking conflicts ......
-//                    LocalDate checkOut = LocalDate.parse(checkOutStr);
-//                    pstmt.setString(checkOut);
-//                    pos++;
-//                }
-
-                pstmt.setInt(2, Integer.parseInt(r_code));
-
-                System.out.println(pstmt);
-//                int rowCount = pstmt.executeUpdate();
-//
-//                // Step 5: Handle results
-//                if (rowCount == 0)
-//                    System.out.println("\nReservation Code not found in our records.");
-//                System.out.format("Updated %d records for reservations", rowCount);
-//
-//                // Step 6: Commit or rollback transaction
-//                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
+                } catch (SQLException e) {
+                    conn.rollback();
+                }
             }
-
-
         }
     }
 
