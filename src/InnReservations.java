@@ -108,16 +108,16 @@ public class InnReservations {
             System.out.print("What's the last name? ");
             String l_name = scanner.nextLine();
 
-            System.out.print("What's the room code? ");
+            System.out.print("What's the room code? (Type “Any” to if no preference) ");
             String room_code = scanner.nextLine();
 
-            System.out.print("What's the bed type? ");
+            System.out.print("What's the bed type? (Type “Any” to if no preference) ");
             String bed_type = scanner.nextLine();
 
-            System.out.print("What will be the begin date of stay (YYYY-MM-DD)? ");
+            System.out.print("What is the desired check in date (YYYY-MM-DD)? ");
             LocalDate checkIn = LocalDate.parse(scanner.nextLine());
 
-            System.out.print("What will be the end date of stay (YYYY-MM-DD)? ");
+            System.out.print("What is the desired check out date of stay (YYYY-MM-DD)? ");
             LocalDate checkOut = LocalDate.parse(scanner.nextLine());
 
             System.out.print("For how many children? ");
@@ -126,30 +126,93 @@ public class InnReservations {
             System.out.print("For how many adults? ");
             String num_adults = scanner.nextLine();
 
-//            System.out.format("Until what date will %s be available (YYYY-MM-DD)? ", flavor);
+            int desired_ocp = Integer.parseInt(num_children) + Integer.parseInt(num_adults);
+
+            // Step 2: Construct SQL statement
+            String sqlStmt = "select *\n" +
+                    "from \n" +
+                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" ;
+
+            String sqlMaxOccQuery = "select max(maxOcc)\nfrom \n    rbeltr01.lab7_rooms;";
+
+            String sqlMatchQuery = "select RoomName, Beds, BedType, MaxOcc, BasePrice, Decor,\n" +
+                    "    case roomname in (\n" +
+                    "            select roomname\n" +
+                    "            from \n" +
+                    "                rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                    "            where\n" +
+                    "                (checkin <= ? and checkout > ?) OR\n" +
+                    "                (checkin <= ? and checkout > ?)\n" +
+                    "            )\n" +
+                    "        when true then 'Occupied'\n" +
+                    "        else 'Available'\n" +
+                    "        end 'AvailableStatus'\n" +
+                    "from \n" +
+                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                    "where\n" +
+                    "    RoomCode LIKE ? AND\n" +
+                    "    bedType LIKE ? AND\n" +
+                    "    maxOcc >= ?\n" +
+                    "group by room\n" +
+                    "having AvailableStatus = 'Available'\n" +
+                    "order by room ";
+
+//            String sqlRoomsWithMaxOccAndRoomCodeQuery = '';
+//
+//            String sqlRoomsWithMaxOccQuery = '';
 
 
-//            String updateSql = "UPDATE hp_goods SET AvailUntil = ? WHERE Flavor = ?";
-//
-//            // Step 3: Start transaction
-//            conn.setAutoCommit(false);
-//
-//            try (PreparedStatement pstmt = conn.prepareStatement(updateSql)) {
-//
-//                // Step 4: Send SQL statement to DBMS
-//                pstmt.setDate(1, java.sql.Date.valueOf(availDt));
-//                pstmt.setString(2, flavor);
-//                int rowCount = pstmt.executeUpdate();
-//
-//                // Step 5: Handle results
-//                System.out.format("Updated %d records for %s pastries%n", rowCount, flavor);
-//
-//                // Step 6: Commit or rollback transaction
-//                conn.commit();
-//            } catch (SQLException e) {
-//                conn.rollback();
-//            }
 
+            //CHECK MAX OCC
+
+            // Check to see all fields match, EXACT MATCH query
+
+
+            // IF RESULT ZERO, START SUGGESTIONS
+
+            // CHECK ROOM CODE, MAX OC to see if exists
+
+            // If exits then start checking dates -- go until FIVE work
+
+            // If not exits then check only based on max occ -- go until FIVE works
+
+            // RESERVE IF DESIRED
+
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                // Inject field values
+                if(!f_name.equals("any"))
+                    pstmt.setString(1, "%" + f_name);
+                else
+                    pstmt.setString(1, "%");
+
+                // Step 4: Send SQL statement to DBMS
+                ResultSet res = pstmt.executeQuery();
+                ResultSetMetaData rsmd = res.getMetaData();
+                int count = rsmd.getColumnCount();
+
+                for (int i = 1; i < count; i++)
+                    System.out.printf("%-30s", rsmd.getColumnName(i));
+                System.out.println("");
+
+                int y = 1;
+                while (res.next()) {
+                    System.out.println(y);
+                    for (int i = 1; i < count; i++) {
+                        System.out.printf("%-30s", res.getString(i));
+                    }
+                    y++;
+                }
+
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         // Step 7: Close connection (handled implcitly by try-with-resources syntax)
     }
@@ -349,15 +412,9 @@ public class InnReservations {
 
             System.out.print("What is the check in date (YYYY-MM-DD)? ");
             String checkInStr = scanner.nextLine();
-            LocalDate checkIn;
-            if(!checkInStr.equals("any"))
-                checkIn = LocalDate.parse(checkInStr);
 
             System.out.print("What is the checkout date (YYYY-MM-DD)? ");
             String checkOutStr = scanner.nextLine();
-            LocalDate checkOut;
-            if(!checkOutStr.equals("any"))
-                checkOut = LocalDate.parse(checkOutStr);
 
             System.out.print("What's the room code? ");
             String room_code = scanner.nextLine();
