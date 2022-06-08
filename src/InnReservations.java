@@ -157,7 +157,7 @@ public class InnReservations {
     private static void ReservationChange() throws SQLException {
         System.out.println("Reservation Change");
         loadDriver();
-        Boolean modified = false;
+        ArrayList<String> vals = new ArrayList<>();
 
         // Step 1: Establish connection to RDBMS
         try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
@@ -188,159 +188,105 @@ public class InnReservations {
             String numAdults = scanner.nextLine();
 
             // Step 2: Construct SQL statement
-            String sqlStmtLeft = "UPDATE rbeltr01.lab7_reservations SET";
-            String sqlStmtRight = " WHERE CODE = ?";
+            String sqlStmt = "UPDATE rbeltr01.lab7_reservations SET FirstName = ?, LastName = ?, Kids = ?, Adults = ?, CheckIn = ?, Checkout = ? WHERE CODE = ?";
 
-            // Modify setConditions based on what was given, and what works with existing data
-            if(!firstName.equals("none")) {
-                sqlStmtLeft += " FirstName = ?,";
-                modified = true;
-            }
+            // Step 2: Construct SQL statement for
+            String sqlStmtBase = "select * from rbeltr01.lab7_reservations WHERE CODE = ?";
 
-            if (!lastName.equals("none")){
-                sqlStmtLeft += " LastName = ?,";
-                modified = true;
-            }
+            // Step 3: Start transaction
+            conn.setAutoCommit(false);
 
-            if (!numChildren.equals("none")){
-                sqlStmtLeft += " Kids = ?,";
-                modified = true;
-            }
-            if (!numAdults.equals("none")){
-                sqlStmtLeft += " Adults = ?,";
-                modified = true;
-            }
+            // Run query to get the current values of reservation
+            try (PreparedStatement base_pstmt = conn.prepareStatement(sqlStmtBase)) {
+                // Step 4: Send SQL statement to DBMS
+                base_pstmt.setInt(1, Integer.parseInt(res_code));
+                ResultSet res = base_pstmt.executeQuery();
+                ResultSetMetaData rsmd = res.getMetaData();
+                int colCount = rsmd.getColumnCount();
 
-            if (!checkInStr.equals("none")){
-                // Have more logic for checking conflicts ......
-                sqlStmtLeft += " CheckIn = ?,";
-                modified = true;
-            }
+                // Step 5: Handle results
+                while (res.next()) {
+                    for (int i = 1; i < colCount + 1; i++)
+                        vals.add(res.getString(i));
+                }
 
-            if (!checkOutStr.equals("none")){
-                // Have more logic for checking conflicts ......
-                sqlStmtLeft += " Checkout = ?,";
-                modified = true;
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
             }
 
             // Step 3: Start transaction
             conn.setAutoCommit(false);
 
-            if (modified){
-                String sqlStmt = sqlStmtLeft.substring(0,sqlStmtLeft.length() - 1) + sqlStmtRight;
-                System.out.println(sqlStmt);
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                // Step 4: Send SQL statement to DBMS
 
-                try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                if(firstName.equals("none"))
+                    firstName = vals.get(6);
+                pstmt.setString(1, firstName);
 
-                    // Step 4: Send SQL statement to DBMS
-                    int pos = 1;
+                if(lastName.equals("none"))
+                    firstName = vals.get(5);
+                pstmt.setString(2, lastName);
 
-                    if(!firstName.equals("none")){
-                        pstmt.setString(pos, firstName);
-                        pos++;
-                    }
+                if (numChildren.equals("none"))
+                    numChildren = vals.get(8);
+                pstmt.setInt(3, Integer.parseInt(numChildren));
 
-                    if (!lastName.equals("none")){
-                        pstmt.setString(pos, lastName);
-                        pos++;
-                    }
+                if (numAdults.equals("none"))
+                    numAdults = vals.get(7);
+                pstmt.setInt(4, Integer.parseInt(numAdults));
 
-                    if (!numChildren.equals("none")){
-                        pstmt.setInt(pos, Integer.parseInt(numChildren));
-                        pos++;
-                    }
+                if (checkInStr.equals("none"))
+                    checkInStr = vals.get(2);
+                pstmt.setDate(5, java.sql.Date.valueOf(checkInStr));
 
-                    if (!numAdults.equals("none")){
-                        pstmt.setInt(pos, Integer.parseInt(numAdults));
-                        pos++;
-                    }
+                if (checkOutStr.equals("none"))
+                    checkOutStr = vals.get(3);
+                pstmt.setDate(6, java.sql.Date.valueOf(checkOutStr));
 
-                    ///////////////////////////////////////////////////////////////////////////////
-                    if (!checkInStr.equals("none")){
-                        pstmt.setDate(pos, java.sql.Date.valueOf(checkInStr));
-                        pos++;
-                    }
+                pstmt.setInt(7, Integer.parseInt(res_code));
 
-                    if (!checkOutStr.equals("none")){
-                        pstmt.setDate(pos, java.sql.Date.valueOf(checkOutStr));
-                        pos++;
-                    }
+                System.out.println(pstmt);
 
-                    pstmt.setInt(pos, Integer.parseInt(res_code));
+                String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations \n" +
+                            "where (Checkout > ? and Checkout < ?) \n" +
+                            "    or (CheckIn > ? and CheckIn < ?)";
 
-                    // Step 4: Send SQL statement to DBMS
-                    int rowCount = pstmt.executeUpdate();
+                try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
+                    conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
+                    conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
+                    conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
+                    conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
+                    System.out.println("About to execute search for conflicts with \n" + conflicts_pstmt);
+
+                    ResultSet res = conflicts_pstmt.executeQuery();
+                    int count = 0;
+                    while (res.next())
+                        count++;
 
                     // Step 5: Handle results
-                    if (rowCount == 0)
-                        System.out.println("\nReservation Code not found in our records. Please try again");
-                    System.out.format("Updated %d records for reservations", rowCount);
+                    if (count > 0){
+                        System.out.println("Error: Dates conflicting with existing reservations");
+                    } else {
+                        // Step 4: Send SQL statement to DBMS
+                        int rowCount = pstmt.executeUpdate();
 
-                    // Step 6: Commit or rollback transaction
-                    conn.commit();
-//                        System.out.println("Error: Dates conflicting with existing reservations")
-                    ///////////////////////////////////////////////////////////////////////////////
-
-                    // Check for conflicts
-                    // if there are conflicts, say there was an issue, exit, dont' change anything
-                    // if no conflicts, run query
-
-//                String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations \n" +
-//                        "where (Checkout > ? and Checkout < ?) \n" +
-//                        "    or (CheckIn > ? and CheckIn < ?)";
-
-//                try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
-//                    conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
-//                    conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
-//                    conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
-//                    conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
-//
-//                    int conflict_rowCount = conflicts_pstmt.executeUpdate();
-//
-//                    // Step 5: Handle results
-//                    if (conflict_rowCount == 0){
-//                        System.out.println("Error: Dates conflicting with existing reservations");
-//                    } else {
-//                        if (!checkInStr.equals("none")){
-//                            pstmt.setDate(pos, java.sql.Date.valueOf(checkInStr));
-//                            pos++;
-//                        }
-//
-//                        if (!checkOutStr.equals("none")){
-//                            pstmt.setDate(pos, java.sql.Date.valueOf(checkOutStr));
-//                            pos++;
-//                        }
-//
-//                        // Step 4: Send SQL statement to DBMS
-//                        ResultSet res = pstmt.executeQuery(sqlStmt);
-//                        ResultSetMetaData rsmd = res.getMetaData();
-//                        int colCount = rsmd.getColumnCount();
-//
-//                        for (int i = 1; i < colCount; i++) {
-//                            System.out.printf("%-30s", rsmd.getColumnName(i));
-//                        }
-//
-//                        System.out.println("");
-//
-//                        while (res.next()) {
-//                            System.out.println("");
-//                            for (int i = 1; i < colCount; i++) {
-//                                System.out.printf("%-30s", res.getString(i));
-//                            }
-//                        }
-//
-//                        System.out.println("Finished Successfully?......");
-//
-//                        // Step 6: Commit or rollback transaction
-//
-//                        conn.commit();
-//                    }
-//                } catch (SQLException e) {
-//                    conn.rollback();
-//                }
+                        // Step 5: Handle results
+                        if (rowCount == 0)
+                            System.out.println("\nReservation Code not found in our records. Please try again");
+                        else{
+                            System.out.format("Successfully updated reservation");
+                        }
+                        // Step 6: Commit or rollback transaction
+                        conn.commit();
+                    }
                 } catch (SQLException e) {
                     conn.rollback();
                 }
+            } catch (SQLException e) {
+                conn.rollback();
             }
         }
     }
