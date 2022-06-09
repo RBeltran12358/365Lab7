@@ -121,10 +121,6 @@ public class InnReservations {
             System.out.print("What is the desired check out date of stay (YYYY-MM-DD)? ");
             LocalDate checkOut = LocalDate.parse(scanner.nextLine());
 
-//            TO DO: Set duration to be checkin minus checkout
-            int lengthOfStay = 5;
-//            long lengthOfStay = Duration.between(checkOut, checkIn).toDays();
-
             System.out.print("For how many children? ");
             String num_children = scanner.nextLine();
 
@@ -263,13 +259,21 @@ public class InnReservations {
 
             if(answer.equals("1") | answer.equals("2") | answer.equals("3") | answer.equals("4") | answer.equals("5")) {
 
+                // TO DO: update the chosen room to be the room chosen
+                int chosenRoom = Integer.parseInt(answer) - 1;
+
                 //TO DO: ADD Confirmation page print out here
-                System.out.println("\nConfirmation Page ");
-                System.out.println("First Name");
-                //TO DO: figure out base prices and things for weekend vs weekdays
+                System.out.println("\nConfirmation Page for selected option: " + (chosenRoom + 1) + "\n");
+                System.out.println("First Name: " + f_name);
+                System.out.println("Last Name: " + l_name);
+                System.out.println("Room Code: " + results[chosenRoom][0]);
+                System.out.println("Check In Date: " + results[chosenRoom][7]);
+                System.out.println("Check Out Date: " + results[chosenRoom][8]);
+                System.out.println("Number of children: " + num_children);
+                System.out.println("Number of adults: " + num_adults);
+                //TO DO: figure out base prices and things for weekend vs weekdays AND CALC THE BASE PRICE
+                System.out.println("Total cost of stay: " + results[chosenRoom][5]);
 
-
-                //TO DO: add check if they want to reserve stuff
                 System.out.print("\n\nTo confirm booking reservation, enter confirm. " +
                         "To cancel request, enter cancel : ");
                 String confirm = scanner.nextLine();
@@ -301,9 +305,6 @@ public class InnReservations {
                     }
 
                     System.out.println("Your confirmation code is: " + newReservationCode);
-
-                    // TO DO: update the chosen room to be the room chosen
-                    int chosenRoom = Integer.parseInt(answer) - 1;
 
                     try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
                         //Inject values to insert
