@@ -27,7 +27,6 @@ public class InnReservations {
     }
 
     private static void RoomsAndRates() throws SQLException{
-        System.out.println("Room and Rates");
         loadDriver();
 
         // Step 1: Establish connection to RDBMS
@@ -91,8 +90,6 @@ public class InnReservations {
     }
 
     private static void Reservations() throws SQLException {
-
-        System.out.println("Reservations\r\n");
         loadDriver();
 
         // Step 1: Establish connection to RDBMS
@@ -100,62 +97,89 @@ public class InnReservations {
                 System.getenv("HP_JDBC_USER"),
                 System.getenv("HP_JDBC_PW"))) {
             // Step 2: Construct SQL statement
-            Scanner scanner = new Scanner(System.in);
+//            Scanner scanner = new Scanner(System.in);
+//
+//            System.out.print("What's the first name? ");
+//            String f_name = scanner.nextLine();
+//
+//            System.out.print("What's the last name? ");
+//            String l_name = scanner.nextLine();
+//
+//            System.out.print("What's the room code? (Type “Any” to if no preference) ");
+//            String room_code = scanner.nextLine();
+//
+//            System.out.print("What's the bed type? (Type “Any” to if no preference) ");
+//            String bed_type = scanner.nextLine();
+//
+//            System.out.print("What is the desired check in date (YYYY-MM-DD)? ");
+//            LocalDate checkIn = LocalDate.parse(scanner.nextLine());
+//
+//            System.out.print("What is the desired check out date of stay (YYYY-MM-DD)? ");
+//            LocalDate checkOut = LocalDate.parse(scanner.nextLine());
+//
+//            System.out.print("For how many children? ");
+//            String num_children = scanner.nextLine();
+//
+//            System.out.print("For how many adults? ");
+//            String num_adults = scanner.nextLine();
+//
+//            int desired_ocp = Integer.parseInt(num_children) + Integer.parseInt(num_adults);
+//
 
-            System.out.print("What's the first name? ");
-            String f_name = scanner.nextLine();
-
-            System.out.print("What's the last name? ");
-            String l_name = scanner.nextLine();
-
-            System.out.print("What's the room code? (Type “Any” to if no preference) ");
-            String room_code = scanner.nextLine();
-
-            System.out.print("What's the bed type? (Type “Any” to if no preference) ");
-            String bed_type = scanner.nextLine();
-
-            System.out.print("What is the desired check in date (YYYY-MM-DD)? ");
-            LocalDate checkIn = LocalDate.parse(scanner.nextLine());
-
-            System.out.print("What is the desired check out date of stay (YYYY-MM-DD)? ");
-            LocalDate checkOut = LocalDate.parse(scanner.nextLine());
-
-            System.out.print("For how many children? ");
-            String num_children = scanner.nextLine();
-
-            System.out.print("For how many adults? ");
-            String num_adults = scanner.nextLine();
-
-            int desired_ocp = Integer.parseInt(num_children) + Integer.parseInt(num_adults);
-
-            // Step 2: Construct SQL statement
-            String sqlStmt = "select *\n" +
-                    "from \n" +
-                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" ;
+            //////////////////
+            // Step 3: Start transaction
+            int maxOcc = -1;
+            conn.setAutoCommit(false);
 
             String sqlMaxOccQuery = "select max(maxOcc)\nfrom \n    rbeltr01.lab7_rooms;";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlMaxOccQuery)) {
+                ResultSet res = pstmt.executeQuery();
+                ResultSetMetaData rsmd = res.getMetaData();
+                int colCount = rsmd.getColumnCount();
 
-            String sqlMatchQuery = "select RoomName, Beds, BedType, MaxOcc, BasePrice, Decor,\n" +
-                    "    case roomname in (\n" +
-                    "            select roomname\n" +
-                    "            from \n" +
-                    "                rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
-                    "            where\n" +
-                    "                (checkin <= ? and checkout > ?) OR\n" +
-                    "                (checkin <= ? and checkout > ?)\n" +
-                    "            )\n" +
-                    "        when true then 'Occupied'\n" +
-                    "        else 'Available'\n" +
-                    "        end 'AvailableStatus'\n" +
-                    "from \n" +
-                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
-                    "where\n" +
-                    "    RoomCode LIKE ? AND\n" +
-                    "    bedType LIKE ? AND\n" +
-                    "    maxOcc >= ?\n" +
-                    "group by room\n" +
-                    "having AvailableStatus = 'Available'\n" +
-                    "order by room ";
+                // Step 5: Handle results
+                while (res.next()) {
+                    for (int i = 1; i < colCount + 1; i++)
+                        maxOcc = Integer.parseInt(res.getString(i));
+                }
+                // Step 6: Commit or rollback transaction
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+
+            System.out.println("MaxOcc" + maxOcc);
+            //////////////////
+        }
+//
+//            // Step 2: Construct SQL statement
+//            String sqlStmt = "select *\n" +
+//                    "from \n" +
+//                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" ;
+//
+//            String sqlMaxOccQuery = "select max(maxOcc)\nfrom \n    rbeltr01.lab7_rooms;";
+//
+//            String sqlMatchQuery = "select RoomName, Beds, BedType, MaxOcc, BasePrice, Decor,\n" +
+//                    "    case roomname in (\n" +
+//                    "            select roomname\n" +
+//                    "            from \n" +
+//                    "                rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+//                    "            where\n" +
+//                    "                (checkin <= ? and checkout > ?) OR\n" +
+//                    "                (checkin <= ? and checkout > ?)\n" +
+//                    "            )\n" +
+//                    "        when true then 'Occupied'\n" +
+//                    "        else 'Available'\n" +
+//                    "        end 'AvailableStatus'\n" +
+//                    "from \n" +
+//                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+//                    "where\n" +
+//                    "    RoomCode LIKE ? AND\n" +
+//                    "    bedType LIKE ? AND\n" +
+//                    "    maxOcc >= ?\n" +
+//                    "group by room\n" +
+//                    "having AvailableStatus = 'Available'\n" +
+//                    "order by room ";
 
 //            String sqlRoomsWithMaxOccAndRoomCodeQuery = '';
 //
@@ -179,46 +203,45 @@ public class InnReservations {
             // RESERVE IF DESIRED
 
             // Step 3: Start transaction
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
-                // Inject field values
-                if(!f_name.equals("any"))
-                    pstmt.setString(1, "%" + f_name);
-                else
-                    pstmt.setString(1, "%");
-
-                // Step 4: Send SQL statement to DBMS
-                ResultSet res = pstmt.executeQuery();
-                ResultSetMetaData rsmd = res.getMetaData();
-                int count = rsmd.getColumnCount();
-
-                for (int i = 1; i < count; i++)
-                    System.out.printf("%-30s", rsmd.getColumnName(i));
-                System.out.println("");
-
-                int y = 1;
-                while (res.next()) {
-                    System.out.println(y);
-                    for (int i = 1; i < count; i++) {
-                        System.out.printf("%-30s", res.getString(i));
-                    }
-                    y++;
-                }
-
-                // Step 6: Commit or rollback transaction
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+//            conn.setAutoCommit(false);
+//
+//            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+//                // Inject field values
+//                if(!f_name.equals("any"))
+//                    pstmt.setString(1, "%" + f_name);
+//                else
+//                    pstmt.setString(1, "%");
+//
+//                // Step 4: Send SQL statement to DBMS
+//                ResultSet res = pstmt.executeQuery();
+//                ResultSetMetaData rsmd = res.getMetaData();
+//                int count = rsmd.getColumnCount();
+//
+//                for (int i = 1; i < count; i++)
+//                    System.out.printf("%-30s", rsmd.getColumnName(i));
+//                System.out.println("");
+//
+//                int y = 1;
+//                while (res.next()) {
+//                    System.out.println(y);
+//                    for (int i = 1; i < count; i++) {
+//                        System.out.printf("%-30s", res.getString(i));
+//                    }
+//                    y++;
+//                }
+//
+//                // Step 6: Commit or rollback transaction
+//                conn.commit();
+//            } catch (SQLException e) {
+//                conn.rollback();
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
         // Step 7: Close connection (handled implcitly by try-with-resources syntax)
     }
 
     private static void ReservationChange() throws SQLException {
-        System.out.println("Reservation Change");
         loadDriver();
         ArrayList<String> vals = new ArrayList<>();
 
@@ -311,8 +334,6 @@ public class InnReservations {
 
                 pstmt.setInt(7, Integer.parseInt(res_code));
 
-                System.out.println(pstmt);
-
                 String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations \n" +
                             "where (Checkout > ? and Checkout < ?) \n" +
                             "    or (CheckIn > ? and CheckIn < ?)";
@@ -322,7 +343,6 @@ public class InnReservations {
                     conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
                     conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
                     conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
-                    System.out.println("About to execute search for conflicts with \n" + conflicts_pstmt);
 
                     ResultSet res = conflicts_pstmt.executeQuery();
                     int count = 0;
@@ -355,7 +375,6 @@ public class InnReservations {
     }
 
     private static void ReservationCancellation() throws SQLException {
-        System.out.println("Reservation Cancellation");
         loadDriver();
 
         // Step 1: Establish connection to RDBMS
@@ -400,7 +419,6 @@ public class InnReservations {
     }
 
     private static void DetailedReservationInformation() throws SQLException {
-        System.out.println("Detailed Reservation Information");
         loadDriver();
 
         // Step 1: Establish connection to RDBMS
@@ -485,7 +503,6 @@ public class InnReservations {
                     System.out.printf("%-30s", rsmd.getColumnName(i));
                 System.out.println("");
 
-
                 while (res.next()) {
                     System.out.println("");
                     for (int i = 1; i < count; i++)
@@ -503,7 +520,6 @@ public class InnReservations {
     }
 
     private static void Revenue() throws SQLException {
-        System.out.println("Revenue");
         loadDriver();
 
         // Step 1: Establish connection to RDBMS
@@ -694,8 +710,6 @@ public class InnReservations {
                 conn.rollback();
             }
         }
-
-
     }
 
     private static void printIntro() {
@@ -743,7 +757,6 @@ public class InnReservations {
                 System.err.println("SQLException: " + e.getMessage());
             }
             catch (Exception e2) {
-//                System.out.println("Wrong format: Please input a digit from 1-7 inclusive and press Enter");
                 System.err.println("Exception: " + e2.getMessage());
             }
 
