@@ -1,5 +1,5 @@
-import javax.sound.midi.Soundbank;
 import java.sql.*;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -121,6 +121,8 @@ public class InnReservations {
             System.out.print("What is the desired check out date of stay (YYYY-MM-DD)? ");
             LocalDate checkOut = LocalDate.parse(scanner.nextLine());
 
+            long lengthOfStay = Duration.between(checkOut, checkIn).toDays();
+
             System.out.print("For how many children? ");
             String num_children = scanner.nextLine();
 
@@ -130,6 +132,8 @@ public class InnReservations {
             int desired_ocp = Integer.parseInt(num_children) + Integer.parseInt(num_adults);
 
             int maxOcc = -1;
+            String[][] results = new String[5][8];
+
             conn.setAutoCommit(false);
 
             String sqlMaxOccQuery = "select max(maxOcc)\nfrom \n    rbeltr01.lab7_rooms;";
@@ -137,11 +141,10 @@ public class InnReservations {
                 ResultSet res = pstmt.executeQuery();
                 ResultSetMetaData rsmd = res.getMetaData();
                 int colCount = rsmd.getColumnCount();
-
                 // Step 5: Handle results
                 while (res.next()) {
                     for (int i = 1; i < colCount + 1; i++)
-                        maxOcc = Integer.parseInt(res.getString(i));
+                        maxOcc = Integer.parseInt(res.getString(1));
                 }
                 // Step 6: Commit or rollback transaction
                 conn.commit();
@@ -149,12 +152,11 @@ public class InnReservations {
                 conn.rollback();
             }
 
-
-            if (maxOcc >= desired_ocp) {
+            if(maxOcc >= desired_ocp) {
                 // Step 2: Construct SQL statement
-                String sqlMatchQuery = "SELECT Room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, NextAvailableCheckInDate, AvailableStatus, Priority\n" +
+                String sqlMatchQuery = "SELECT room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, NextAvailableCheckInDate, SuggestedCheckOut, AvailableStatus, Priority\n" +
                         "from \n" +
-                        "    ((select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, ? as NextAvailableCheckInDate, \n" +
+                        "    ((select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, ? as NextAvailableCheckInDate, ? as SuggestedCheckOut,\n" +
                         "        case roomname in (\n" +
                         "                select roomname\n" +
                         "                from \n" +
@@ -179,11 +181,12 @@ public class InnReservations {
                         "    \n" +
                         "    UNION\n" +
                         "    \n" +
-                        "    (select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, max(checkout) as NextAvailableCheckInDate, 'Available' as AvailableStatus, '2' as Priority\n" +
+                        "    (select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, max(checkout) as NextAvailableCheckInDate,\n" +
+                        "    ADDDATE(max(checkout), datediff( ? , ? )) as SuggestedCheckOut, 'Available' as AvailableStatus, '2' as Priority\n" +
                         "    from \n" +
                         "        rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
                         "    where\n" +
-                        "        maxOcc >= ? \n" +
+                        "        maxOcc >= ?\n" +
                         "    group by room)) t\n" +
                         "order by priority\n" +
                         "limit 5;";
@@ -195,15 +198,16 @@ public class InnReservations {
 
                     // Inject field values
                     pstmt.setDate(1, java.sql.Date.valueOf(checkIn));
+
                     pstmt.setDate(2, java.sql.Date.valueOf(checkIn));
                     pstmt.setDate(3, java.sql.Date.valueOf(checkOut));
 
-                    if (room_code.equals("any"))
+                    if(room_code.equals("any"))
                         pstmt.setString(4, "%");
                     else
                         pstmt.setString(4, room_code);
 
-                    if (bed_type.equals("any"))
+                    if(bed_type.equals("any"))
                         pstmt.setString(5, "%");
                     else
                         pstmt.setString(5, bed_type);
@@ -223,7 +227,6 @@ public class InnReservations {
                     System.out.println("");
 
                     int y = 0;
-                    String[][] results = new String[5][count];
                     System.out.println("Before while");
                     while (res.next()) {
                         System.out.println();
@@ -236,29 +239,88 @@ public class InnReservations {
                         y++;
                     }
 
-                    System.out.println("");
-
-                    System.out.println("\n\nNum of rows: " + results.length);
-
-                    System.out.println("");
-                    for (int i = 0; i < 5; i++) {
-                        for (int j = 0; j < count -1; j++) {
-                            System.out.print(results[i][j]);
-                            System.out.println("");
-                        }
-                        System.out.println("\n");
-                    }
-
-//                        // Step 6: Commit or rollback transaction
-                        conn.commit();
-//                    }
-                } catch(SQLException e){
-                    System.out.println("Exceptions");
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
+                } catch (SQLException e) {
                     conn.rollback();
                 }
             }
-        }catch (SQLException e) {
-            System.out.println("Exceptions");
+            else {
+                System.out.println("The requested person count (children plus adults) exceeds the maximum capacity of any one room at the Inn.\n There are no suitable rooms are available. ");
+            }
+
+            System.out.print("\nIf you are interested in booking one of the above rooms, select the number (1-5).\n" +
+                    "If you would like to cancel request, enter cancel: ");
+            String answer = scanner.nextLine();
+
+            if(answer.equals("1") | answer.equals("2") | answer.equals("3") | answer.equals("4") | answer.equals("5")) {
+
+                System.out.println("Confirmation Page ");
+                System.out.println("First Name");
+
+                String sqlInsertQuery = "INSERT into lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kid) values \n" +
+                        "    (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+
+                String sqlReservationCodeQuery = "select max(code)\n" +
+                        "from lab7_reservations";
+
+                int newReservationNum;
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlReservationCodeQuery)) {
+                    ResultSet res = pstmt.executeQuery();
+                    ResultSetMetaData rsmd = res.getMetaData();
+                    int colCount = rsmd.getColumnCount();
+
+                    // Step 5: Handle results
+                    while (res.next()) {
+                        for (int i = 1; i < colCount + 1; i++)
+                            newReservationNum = Integer.parseInt(res.getString(i)) + 1;
+                    }
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                }
+
+                int chosenRoom = 1;
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
+                    //Inject values to insert
+                    pstmt.setString(1, results[chosenRoom][0]);
+                    pstmt.setString(2, results[chosenRoom][1]);
+                    pstmt.setString(3, results[chosenRoom][7]);
+                    pstmt.setDate(4, java.sql.Date.valueOf(checkOut)); //CHANGE THIS TO ACTUAL CHECKOUT DATE
+                    pstmt.setString(5, results[chosenRoom][5]); //bas value
+                    pstmt.setString(6, l_name);
+                    pstmt.setString(8, num_adults);
+                    pstmt.setString(9, num_children);
+
+                    ResultSet res = pstmt.executeQuery();
+                    ResultSetMetaData rsmd = res.getMetaData();
+
+                    // Step 5: Handle results
+                    if (res.next()) {
+                        System.out.println("Reservation was successfully made! Thank you!");
+                    }
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                }
+
+            }
+            else {
+                System.out.println("Thank you for your inquiry, no reservations were made at this time.");
+            }
+
+
+
+
+
+
+
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         // Step 7: Close connection (handled implcitly by try-with-resources syntax)
