@@ -236,6 +236,8 @@ public class InnReservations {
                         y++;
                     }
 
+                    System.out.println("");
+
                     System.out.println("\n\nNum of rows: " + results.length);
 
                     System.out.println("");
