@@ -121,7 +121,9 @@ public class InnReservations {
             System.out.print("What is the desired check out date of stay (YYYY-MM-DD)? ");
             LocalDate checkOut = LocalDate.parse(scanner.nextLine());
 
-            long lengthOfStay = Duration.between(checkOut, checkIn).toDays();
+//            TO DO: Set duration to be checkin minus checkout
+            int lengthOfStay = 5;
+//            long lengthOfStay = Duration.between(checkOut, checkIn).toDays();
 
             System.out.print("For how many children? ");
             String num_children = scanner.nextLine();
@@ -162,11 +164,11 @@ public class InnReservations {
                         "                from \n" +
                         "                    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
                         "                where\n" +
-                        "                    (Checkout <= ? OR\n" +
-                        "                    ? <= Checkin)\n" +
+                        "                    (Checkout > ? and Checkout <= ?) OR\n" +
+                        "                   (CheckIn >= ? and CheckIn < ?)\n" +
                         "                )\n" +
-                        "            when true then 'Available'\n" +
-                        "            else 'OCCUPIED'\n" +
+                        "            when true then 'OCCUPIED'\n" +
+                        "            else 'Available'\n" +
                         "            end 'AvailableStatus',\n" +
                         "        '1' as Priority\n" +
                         "    from \n" +
@@ -201,21 +203,23 @@ public class InnReservations {
                     pstmt.setDate(2, java.sql.Date.valueOf(checkOut));
                     pstmt.setDate(3, java.sql.Date.valueOf(checkIn));
                     pstmt.setDate(4, java.sql.Date.valueOf(checkOut));
+                    pstmt.setDate(5, java.sql.Date.valueOf(checkIn));
+                    pstmt.setDate(6, java.sql.Date.valueOf(checkOut));
 
                     if(room_code.equals("any"))
-                        pstmt.setString(5, "%");
+                        pstmt.setString(7, "%");
                     else
-                        pstmt.setString(5, room_code);
+                        pstmt.setString(7, room_code);
 
                     if(bed_type.equals("any"))
-                        pstmt.setString(6, "%");
+                        pstmt.setString(8, "%");
                     else
-                        pstmt.setString(6, bed_type);
+                        pstmt.setString(8, bed_type);
 
-                    pstmt.setInt(7, desired_ocp);
-                    pstmt.setDate(8, java.sql.Date.valueOf(checkOut));
-                    pstmt.setDate(9, java.sql.Date.valueOf(checkIn));
-                    pstmt.setInt(10, desired_ocp);
+                    pstmt.setInt(9, desired_ocp);
+                    pstmt.setDate(10, java.sql.Date.valueOf(checkOut));
+                    pstmt.setDate(11, java.sql.Date.valueOf(checkIn));
+                    pstmt.setInt(12, desired_ocp);
 
                     // Step 4: Send SQL statement to DBMS
                     ResultSet res = pstmt.executeQuery();
@@ -251,30 +255,29 @@ public class InnReservations {
                 System.out.println("The requested person count (children plus adults) exceeds the maximum capacity of any one room at the Inn.\n There are no suitable rooms are available. ");
             }
 
-            System.out.print("\nIf you are interested in booking one of the above rooms, select the number (1-5).\n" +
-                    "If you would like to cancel request, enter cancel: ");
+            System.out.print("\n\nIf you are interested in booking one of the above rooms, select the number (1-5). " +
+                    "To cancel request, enter cancel : ");
             String answer = scanner.nextLine();
 
             if(answer.equals("1") | answer.equals("2") | answer.equals("3") | answer.equals("4") | answer.equals("5")) {
 
-                //ADD Confirmation page print out here
-                System.out.println("Confirmation Page ");
+                //TO DO: ADD Confirmation page print out here
+                System.out.println("\nConfirmation Page ");
                 System.out.println("First Name");
-
-                //figure out base prices and things for weekend vs weekdays
-
-                // add check if they want to reserve stuff
+                //TO DO: figure out base prices and things for weekend vs weekdays
 
 
-                //then reserve things
+                //TO DO: add check if they want to reserve stuff
 
-                String sqlInsertQuery = "INSERT into lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kid) values \n" +
+
+                //TO DO: If yes then reserve things
+                String sqlInsertQuery = "INSERT into rbeltr01.lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kids) values  \n" +
                         "    (?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
                 String sqlReservationCodeQuery = "select max(code)\n" +
-                        "from lab7_reservations";
+                        "from rbeltr01.lab7_reservations";
 
-                int newReservationNum;
+                int newReservationCode = 0;
 
                 try (PreparedStatement pstmt = conn.prepareStatement(sqlReservationCodeQuery)) {
                     ResultSet res = pstmt.executeQuery();
@@ -284,7 +287,7 @@ public class InnReservations {
                     // Step 5: Handle results
                     while (res.next()) {
                         for (int i = 1; i < colCount + 1; i++)
-                            newReservationNum = Integer.parseInt(res.getString(i)) + 1;
+                            newReservationCode = Integer.parseInt(res.getString(i)) + 1;
                     }
                     // Step 6: Commit or rollback transaction
                     conn.commit();
@@ -292,26 +295,31 @@ public class InnReservations {
                     conn.rollback();
                 }
 
+                System.out.println("Your confirmation code is: " + newReservationCode);
+
+                // TO DO: update the chosen room to be the room chosen
                 int chosenRoom = 1;
 
                 try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
                     //Inject values to insert
 
                     //update again based on the new query
-                    pstmt.setString(1, results[chosenRoom][0]);
-                    pstmt.setString(2, results[chosenRoom][1]);
-                    pstmt.setString(3, results[chosenRoom][7]);
-                    pstmt.setDate(4, java.sql.Date.valueOf(checkOut)); //CHANGE THIS TO ACTUAL CHECKOUT DATE
-                    pstmt.setString(5, results[chosenRoom][5]); //bas value
-                    pstmt.setString(6, l_name);
-                    pstmt.setString(8, num_adults);
-                    pstmt.setString(9, num_children);
+                    pstmt.setInt(1, newReservationCode); // new code
+                    pstmt.setString(2, results[chosenRoom][0]); //room
+                    pstmt.setString(3, results[chosenRoom][7]); //check in
+                    pstmt.setString(4, results[chosenRoom][8]); // CHECKOUT
+                    pstmt.setString(5, results[chosenRoom][5]); //rate
+                    pstmt.setString(6, l_name); // lastname
+                    pstmt.setString(7, f_name); // firstname
+                    pstmt.setString(8, num_adults); // adults
+                    pstmt.setString(9, num_children); // children
 
-                    ResultSet res = pstmt.executeQuery();
-                    ResultSetMetaData rsmd = res.getMetaData();
+                    System.out.println(pstmt);
+
+                    int rowCount = pstmt.executeUpdate();
 
                     // Step 5: Handle results
-                    if (res.next()) {
+                    if (rowCount > 0) {
                         System.out.println("Reservation was successfully made! Thank you!");
                     }
                     // Step 6: Commit or rollback transaction
@@ -428,8 +436,8 @@ public class InnReservations {
                 System.out.println(pstmt);
 
                 String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations \n" +
-                            "where (Checkout > ? and Checkout < ?) \n" +
-                            "    or (CheckIn > ? and CheckIn < ?)";
+                            "where (Checkout > ? and Checkout <= ?) \n" +
+                            "    or (CheckIn >= ? and CheckIn < ?)";
 
                 try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
                     conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
