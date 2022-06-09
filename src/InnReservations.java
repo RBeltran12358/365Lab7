@@ -128,90 +128,117 @@ public class InnReservations {
 
             int desired_ocp = Integer.parseInt(num_children) + Integer.parseInt(num_adults);
 
-            // Step 2: Construct SQL statement
-            String sqlStmt = "select *\n" +
-                    "from \n" +
-                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" ;
-
-            String sqlMaxOccQuery = "select max(maxOcc)\nfrom \n    rbeltr01.lab7_rooms;";
-
-            String sqlMatchQuery = "select RoomName, Beds, BedType, MaxOcc, BasePrice, Decor,\n" +
-                    "    case roomname in (\n" +
-                    "            select roomname\n" +
-                    "            from \n" +
-                    "                rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
-                    "            where\n" +
-                    "                (checkin <= ? and checkout > ?) OR\n" +
-                    "                (checkin <= ? and checkout > ?)\n" +
-                    "            )\n" +
-                    "        when true then 'Occupied'\n" +
-                    "        else 'Available'\n" +
-                    "        end 'AvailableStatus'\n" +
-                    "from \n" +
-                    "    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
-                    "where\n" +
-                    "    RoomCode LIKE ? AND\n" +
-                    "    bedType LIKE ? AND\n" +
-                    "    maxOcc >= ?\n" +
-                    "group by room\n" +
-                    "having AvailableStatus = 'Available'\n" +
-                    "order by room ";
-
-//            String sqlRoomsWithMaxOccAndRoomCodeQuery = '';
-//
-//            String sqlRoomsWithMaxOccQuery = '';
-
-
-
-            //CHECK MAX OCC
-
-            // Check to see all fields match, EXACT MATCH query
-
-
-            // IF RESULT ZERO, START SUGGESTIONS
-
-            // CHECK ROOM CODE, MAX OC to see if exists
-
-            // If exits then start checking dates -- go until FIVE work
-
-            // If not exits then check only based on max occ -- go until FIVE works
-
-            // RESERVE IF DESIRED
-
-            // Step 3: Start transaction
+            int maxOcc = -1;
             conn.setAutoCommit(false);
 
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
-                // Inject field values
-                if(!f_name.equals("any"))
-                    pstmt.setString(1, "%" + f_name);
-                else
-                    pstmt.setString(1, "%");
-
-                // Step 4: Send SQL statement to DBMS
+            String sqlMaxOccQuery = "select max(maxOcc)\nfrom \n    rbeltr01.lab7_rooms;";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlMaxOccQuery)) {
                 ResultSet res = pstmt.executeQuery();
                 ResultSetMetaData rsmd = res.getMetaData();
-                int count = rsmd.getColumnCount();
+                int colCount = rsmd.getColumnCount();
 
-                for (int i = 1; i < count; i++)
-                    System.out.printf("%-30s", rsmd.getColumnName(i));
-                System.out.println("");
-
-                int y = 1;
+                // Step 5: Handle results
                 while (res.next()) {
-                    System.out.println(y);
-                    for (int i = 1; i < count; i++) {
-                        System.out.printf("%-30s", res.getString(i));
-                    }
-                    y++;
+                    for (int i = 1; i < colCount + 1; i++)
+                        maxOcc = Integer.parseInt(res.getString(i));
                 }
-
                 // Step 6: Commit or rollback transaction
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
             }
-        } catch (SQLException e) {
+
+
+            if(maxOcc >= desired_ocp) {
+                // Step 2: Construct SQL statement
+                String sqlMatchQuery = "SELECT Room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, NextAvailableCheckInDate, AvailableStatus, Priority\n" +
+                        "from \n" +
+                        "    ((select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, ? as NextAvailableCheckInDate, \n" +
+                        "        case roomname in (\n" +
+                        "                select roomname\n" +
+                        "                from \n" +
+                        "                    rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                        "                where\n" +
+                        "                    (Checkout <= ? OR\n" +
+                        "                    ? <= Checkin)\n" +
+                        "                )\n" +
+                        "            when true then 'Available'\n" +
+                        "            else 'OCCUPIED'\n" +
+                        "            end 'AvailableStatus',\n" +
+                        "        '1' as Priority\n" +
+                        "    from \n" +
+                        "        rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                        "    where\n" +
+                        "        RoomCode LIKE ? AND\n" +
+                        "        bedType LIKE ? AND\n" +
+                        "        maxOcc >= ?\n" +
+                        "    group by room\n" +
+                        "    having AvailableStatus = 'Available'\n" +
+                        "    order by room) \n" +
+                        "    \n" +
+                        "    UNION\n" +
+                        "    \n" +
+                        "    (select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, max(checkout) as NextAvailableCheckInDate, 'Available' as AvailableStatus, '2' as Priority\n" +
+                        "    from \n" +
+                        "        rbeltr01.lab7_reservations r1 join rbeltr01.lab7_rooms on Room = RoomCode\n" +
+                        "    where\n" +
+                        "        maxOcc >= ? \n" +
+                        "    group by room)) t\n" +
+                        "order by priority\n" +
+                        "limit 5;";
+
+                // Step 3: Start transaction
+                conn.setAutoCommit(false);
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlMatchQuery)) {
+
+                    // Inject field values
+                    pstmt.setDate(1, java.sql.Date.valueOf(checkIn));
+                    pstmt.setDate(2, java.sql.Date.valueOf(checkIn));
+                    pstmt.setDate(3, java.sql.Date.valueOf(checkOut));
+
+                    if(room_code.equals("any"))
+                        pstmt.setString(4, "%");
+                    else
+                        pstmt.setString(4, room_code);
+
+                    if(bed_type.equals("any"))
+                        pstmt.setString(5, "%");
+                    else
+                        pstmt.setString(5, bed_type);
+
+                    pstmt.setInt(6, desired_ocp);
+                    pstmt.setInt(7, desired_ocp);
+
+                    // Step 4: Send SQL statement to DBMS
+                    ResultSet res = pstmt.executeQuery();
+                    ResultSetMetaData rsmd = res.getMetaData();
+                    int count = rsmd.getColumnCount();
+
+                    System.out.println("");
+                    System.out.print("  ");
+                    for (int i = 1; i < count; i++)
+                        System.out.printf("%-30s", rsmd.getColumnName(i));
+                    System.out.println("");
+
+                    int y = 1;
+                    while (res.next()) {
+                        System.out.println();
+                        System.out.print(y + " ");
+                        for (int i = 1; i < count; i++) {
+                            System.out.printf("%-30s", res.getString(i));
+                        }
+                        y++;
+                    }
+
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
+                } catch (SQLException e) {
+                    conn.rollback();
+                }
+            }
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
         // Step 7: Close connection (handled implcitly by try-with-resources syntax)
