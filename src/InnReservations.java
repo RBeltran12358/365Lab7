@@ -132,7 +132,7 @@ public class InnReservations {
             int desired_ocp = Integer.parseInt(num_children) + Integer.parseInt(num_adults);
 
             int maxOcc = -1;
-            String[][] results = new String[5][8];
+            String[][] results = new String[5][10];
 
             conn.setAutoCommit(false);
 
@@ -198,22 +198,24 @@ public class InnReservations {
 
                     // Inject field values
                     pstmt.setDate(1, java.sql.Date.valueOf(checkIn));
-
-                    pstmt.setDate(2, java.sql.Date.valueOf(checkIn));
-                    pstmt.setDate(3, java.sql.Date.valueOf(checkOut));
+                    pstmt.setDate(2, java.sql.Date.valueOf(checkOut));
+                    pstmt.setDate(3, java.sql.Date.valueOf(checkIn));
+                    pstmt.setDate(4, java.sql.Date.valueOf(checkOut));
 
                     if(room_code.equals("any"))
-                        pstmt.setString(4, "%");
-                    else
-                        pstmt.setString(4, room_code);
-
-                    if(bed_type.equals("any"))
                         pstmt.setString(5, "%");
                     else
-                        pstmt.setString(5, bed_type);
+                        pstmt.setString(5, room_code);
 
-                    pstmt.setInt(6, desired_ocp);
+                    if(bed_type.equals("any"))
+                        pstmt.setString(6, "%");
+                    else
+                        pstmt.setString(6, bed_type);
+
                     pstmt.setInt(7, desired_ocp);
+                    pstmt.setDate(8, java.sql.Date.valueOf(checkOut));
+                    pstmt.setDate(9, java.sql.Date.valueOf(checkIn));
+                    pstmt.setInt(10, desired_ocp);
 
                     // Step 4: Send SQL statement to DBMS
                     ResultSet res = pstmt.executeQuery();
