@@ -257,8 +257,16 @@ public class InnReservations {
 
             if(answer.equals("1") | answer.equals("2") | answer.equals("3") | answer.equals("4") | answer.equals("5")) {
 
+                //ADD Confirmation page print out here
                 System.out.println("Confirmation Page ");
                 System.out.println("First Name");
+
+                //figure out base prices and things for weekend vs weekdays
+
+                // add check if they want to reserve stuff
+
+
+                //then reserve things
 
                 String sqlInsertQuery = "INSERT into lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kid) values \n" +
                         "    (?, ?, ?, ?, ?, ?, ?, ?, ?);";
@@ -288,6 +296,8 @@ public class InnReservations {
 
                 try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
                     //Inject values to insert
+
+                    //update again based on the new query
                     pstmt.setString(1, results[chosenRoom][0]);
                     pstmt.setString(2, results[chosenRoom][1]);
                     pstmt.setString(3, results[chosenRoom][7]);
@@ -314,13 +324,6 @@ public class InnReservations {
             else {
                 System.out.println("Thank you for your inquiry, no reservations were made at this time.");
             }
-
-
-
-
-
-
-
 
         } catch (SQLException e) {
             e.printStackTrace();
