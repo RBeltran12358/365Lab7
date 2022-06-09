@@ -279,7 +279,6 @@ public class InnReservations {
                 String confirm = scanner.nextLine();
 
                 if(confirm.equals("confirm") | confirm.equals("Y") | confirm.equals("Yes")) {
-                    //If yes then reserve things
                     String sqlInsertQuery = "INSERT into rbeltr01.lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kids) values  \n" +
                             "    (?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
@@ -293,12 +292,11 @@ public class InnReservations {
                         ResultSetMetaData rsmd = res.getMetaData();
                         int colCount = rsmd.getColumnCount();
 
-                        // Step 5: Handle results
                         while (res.next()) {
                             for (int i = 1; i < colCount + 1; i++)
                                 newReservationCode = Integer.parseInt(res.getString(i)) + 1;
                         }
-                        // Step 6: Commit or rollback transaction
+
                         conn.commit();
                     } catch (SQLException e) {
                         conn.rollback();
@@ -824,7 +822,6 @@ public class InnReservations {
             }
         }
 
-
     }
 
     private static void printIntro() {
@@ -879,5 +876,4 @@ public class InnReservations {
         }
         System.out.println("Exiting Application :)");
     }
-
 }
