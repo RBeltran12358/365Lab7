@@ -259,6 +259,8 @@ public class InnReservations {
                     "To cancel request, enter cancel : ");
             String answer = scanner.nextLine();
 
+
+
             if(answer.equals("1") | answer.equals("2") | answer.equals("3") | answer.equals("4") | answer.equals("5")) {
 
                 //TO DO: ADD Confirmation page print out here
@@ -301,7 +303,7 @@ public class InnReservations {
                     System.out.println("Your confirmation code is: " + newReservationCode);
 
                     // TO DO: update the chosen room to be the room chosen
-                    int chosenRoom = 1;
+                    int chosenRoom = Integer.parseInt(answer) - 1;
 
                     try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
                         //Inject values to insert
