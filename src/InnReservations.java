@@ -1,3 +1,4 @@
+import javax.sound.midi.Soundbank;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -149,7 +150,7 @@ public class InnReservations {
             }
 
 
-            if(maxOcc >= desired_ocp) {
+            if (maxOcc >= desired_ocp) {
                 // Step 2: Construct SQL statement
                 String sqlMatchQuery = "SELECT Room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, NextAvailableCheckInDate, AvailableStatus, Priority\n" +
                         "from \n" +
@@ -197,12 +198,12 @@ public class InnReservations {
                     pstmt.setDate(2, java.sql.Date.valueOf(checkIn));
                     pstmt.setDate(3, java.sql.Date.valueOf(checkOut));
 
-                    if(room_code.equals("any"))
+                    if (room_code.equals("any"))
                         pstmt.setString(4, "%");
                     else
                         pstmt.setString(4, room_code);
 
-                    if(bed_type.equals("any"))
+                    if (bed_type.equals("any"))
                         pstmt.setString(5, "%");
                     else
                         pstmt.setString(5, bed_type);
@@ -221,24 +222,41 @@ public class InnReservations {
                         System.out.printf("%-30s", rsmd.getColumnName(i));
                     System.out.println("");
 
-                    int y = 1;
+                    int y = 0;
+                    String[][] results = new String[5][count];
+                    System.out.println("Before while");
                     while (res.next()) {
                         System.out.println();
-                        System.out.print(y + " ");
+                        System.out.print((y + 1) + " ");
                         for (int i = 1; i < count; i++) {
-                            System.out.printf("%-30s", res.getString(i));
+                            String val = res.getString(i);
+                            results[y][i - 1] = val;
+                            System.out.printf("%-30s", val);
                         }
                         y++;
                     }
 
-                    // Step 6: Commit or rollback transaction
-                    conn.commit();
-                } catch (SQLException e) {
+                    System.out.println("\n\nNum of rows: " + results.length);
+
+                    System.out.println("");
+                    for (int i = 0; i < 5; i++) {
+                        for (int j = 0; j < count -1; j++) {
+                            System.out.print(results[i][j]);
+                            System.out.println("");
+                        }
+                        System.out.println("\n");
+                    }
+
+//                        // Step 6: Commit or rollback transaction
+                        conn.commit();
+//                    }
+                } catch(SQLException e){
+                    System.out.println("Exceptions");
                     conn.rollback();
                 }
             }
-        }
-        catch (SQLException e) {
+        }catch (SQLException e) {
+            System.out.println("Exceptions");
             e.printStackTrace();
         }
         // Step 7: Close connection (handled implcitly by try-with-resources syntax)
