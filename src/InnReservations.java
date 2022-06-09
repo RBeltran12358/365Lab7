@@ -268,66 +268,70 @@ public class InnReservations {
 
 
                 //TO DO: add check if they want to reserve stuff
+                System.out.print("\n\nTo confirm booking reservation, enter confirm. " +
+                        "To cancel request, enter cancel : ");
+                String confirm = scanner.nextLine();
 
+                if(confirm.equals("confirm") | confirm.equals("Y") | confirm.equals("Yes")) {
+                    //If yes then reserve things
+                    String sqlInsertQuery = "INSERT into rbeltr01.lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kids) values  \n" +
+                            "    (?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
-                //TO DO: If yes then reserve things
-                String sqlInsertQuery = "INSERT into rbeltr01.lab7_reservations (CODE, Room, CheckIn, Checkout, Rate, LastName, FirstName, Adults, Kids) values  \n" +
-                        "    (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                    String sqlReservationCodeQuery = "select max(code)\n" +
+                            "from rbeltr01.lab7_reservations";
 
-                String sqlReservationCodeQuery = "select max(code)\n" +
-                        "from rbeltr01.lab7_reservations";
+                    int newReservationCode = 0;
 
-                int newReservationCode = 0;
+                    try (PreparedStatement pstmt = conn.prepareStatement(sqlReservationCodeQuery)) {
+                        ResultSet res = pstmt.executeQuery();
+                        ResultSetMetaData rsmd = res.getMetaData();
+                        int colCount = rsmd.getColumnCount();
 
-                try (PreparedStatement pstmt = conn.prepareStatement(sqlReservationCodeQuery)) {
-                    ResultSet res = pstmt.executeQuery();
-                    ResultSetMetaData rsmd = res.getMetaData();
-                    int colCount = rsmd.getColumnCount();
-
-                    // Step 5: Handle results
-                    while (res.next()) {
-                        for (int i = 1; i < colCount + 1; i++)
-                            newReservationCode = Integer.parseInt(res.getString(i)) + 1;
+                        // Step 5: Handle results
+                        while (res.next()) {
+                            for (int i = 1; i < colCount + 1; i++)
+                                newReservationCode = Integer.parseInt(res.getString(i)) + 1;
+                        }
+                        // Step 6: Commit or rollback transaction
+                        conn.commit();
+                    } catch (SQLException e) {
+                        conn.rollback();
                     }
-                    // Step 6: Commit or rollback transaction
-                    conn.commit();
-                } catch (SQLException e) {
-                    conn.rollback();
-                }
 
-                System.out.println("Your confirmation code is: " + newReservationCode);
+                    System.out.println("Your confirmation code is: " + newReservationCode);
 
-                // TO DO: update the chosen room to be the room chosen
-                int chosenRoom = 1;
+                    // TO DO: update the chosen room to be the room chosen
+                    int chosenRoom = 1;
 
-                try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
-                    //Inject values to insert
+                    try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
+                        //Inject values to insert
 
-                    //update again based on the new query
-                    pstmt.setInt(1, newReservationCode); // new code
-                    pstmt.setString(2, results[chosenRoom][0]); //room
-                    pstmt.setString(3, results[chosenRoom][7]); //check in
-                    pstmt.setString(4, results[chosenRoom][8]); // CHECKOUT
-                    pstmt.setString(5, results[chosenRoom][5]); //rate
-                    pstmt.setString(6, l_name); // lastname
-                    pstmt.setString(7, f_name); // firstname
-                    pstmt.setString(8, num_adults); // adults
-                    pstmt.setString(9, num_children); // children
+                        //update again based on the new query
+                        pstmt.setInt(1, newReservationCode); // new code
+                        pstmt.setString(2, results[chosenRoom][0]); //room
+                        pstmt.setString(3, results[chosenRoom][7]); //check in
+                        pstmt.setString(4, results[chosenRoom][8]); // checkout
+                        pstmt.setString(5, results[chosenRoom][5]); //rate
+                        pstmt.setString(6, l_name); // last name
+                        pstmt.setString(7, f_name); // first name
+                        pstmt.setString(8, num_adults); // adults
+                        pstmt.setString(9, num_children); // children
 
-                    System.out.println(pstmt);
+                        int rowCount = pstmt.executeUpdate();
 
-                    int rowCount = pstmt.executeUpdate();
-
-                    // Step 5: Handle results
-                    if (rowCount > 0) {
-                        System.out.println("Reservation was successfully made! Thank you!");
+                        // Step 5: Handle results
+                        if (rowCount > 0) {
+                            System.out.println("Reservation was successfully made! Thank you!");
+                        }
+                        // Step 6: Commit or rollback transaction
+                        conn.commit();
+                    } catch (SQLException e) {
+                        conn.rollback();
                     }
-                    // Step 6: Commit or rollback transaction
-                    conn.commit();
-                } catch (SQLException e) {
-                    conn.rollback();
                 }
-
+                else {
+                    System.out.println("Thank you for your inquiry, no reservations were made at this time.");
+                }
             }
             else {
                 System.out.println("Thank you for your inquiry, no reservations were made at this time.");
