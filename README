@@ -19,4 +19,5 @@ HP_JDBC_PW – the password used to access the Lab 365 website
 
 Extra Info:
 - Correct spelling matters for option and value input. (ie. Must type 'none' exactly for option to read).
+- The git log --stat can be found in the 365Lab7 directory named gitlog.txt
 - Enjoy !! :)

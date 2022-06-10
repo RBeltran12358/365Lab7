@@ -1,0 +1,584 @@
+commit 34b92f2e0e796260d4fb22719dccd684881bc7c9
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Thu Jun 9 22:51:51 2022 -0700
+
+    Updated README
+
+ README                                       |   2 ++
+ out/production/365Lab7/InnReservations.class | Bin 27519 -> 27608 bytes
+ 2 files changed, 2 insertions(+)
+
+commit 6d7084a990d7163f308a3a9302745b15204f1d22
+Merge: 6a9fb6f c38bf21
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Thu Jun 9 22:47:52 2022 -0700
+
+    Merge remote-tracking branch 'origin/main' into main
+
+commit 6a9fb6ff73d832b5b302809c9ee3e026e59eadb4
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Thu Jun 9 22:46:59 2022 -0700
+
+    Last commit: Finished everything :)
+
+ out/production/365Lab7/InnReservations.class | Bin 27315 -> 27519 bytes
+ src/InnReservations.java                     |  76 ++++++++++++++-------------
+ 2 files changed, 40 insertions(+), 36 deletions(-)
+
+commit c38bf2147d02574410044656b3f08f2a37381db9
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Thu Jun 9 22:44:00 2022 -0700
+
+    Proj fixes
+
+ README                    |  13 ++++++++-----
+ README.md                 |   8 --------
+ src/InnReservations.class | Bin 0 -> 24702 bytes
+ 3 files changed, 8 insertions(+), 13 deletions(-)
+
+commit b0ad067f74767b2f430f154755f6c5cfc31db57f
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Thu Jun 9 22:25:34 2022 -0700
+
+    Fixed issues
+
+ src/InnReservations.java | 71 ++++++++++++++++++++++++------------------------
+ 1 file changed, 36 insertions(+), 35 deletions(-)
+
+commit e3f67acaff9a3793dc6925b72c03e01592fbb3a6
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Thu Jun 9 20:59:48 2022 -0700
+
+    Finished last checks in reservation change for reverse order dates and max occupancy conflicts.
+
+ out/production/365Lab7/InnReservations.class | Bin 26686 -> 27315 bytes
+ src/InnReservations.java                     | 178 ++++++++++++++++-----------
+ 2 files changed, 103 insertions(+), 75 deletions(-)
+
+commit 50dba5fa9d3ecef64bdcaf8dab6c32eaed0248c2
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Thu Jun 9 20:20:40 2022 -0700
+
+    Finished cleaning up code. Added checks to adding reservation and fixed bugs with changing reservation. Might need a few more minor checks.
+
+ out/production/365Lab7/InnReservations.class | Bin 22493 -> 26686 bytes
+ src/InnReservations.java                     | 254 ++++++++++++++-------------
+ 2 files changed, 133 insertions(+), 121 deletions(-)
+
+commit b347f066c2e37be6cf86e1b08976f61068b507ee
+Merge: f6d5270 a61d27c
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Thu Jun 9 17:02:23 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+
+commit a61d27cf43ea2466bfa08e117e6e259aec45b8b5
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 23:15:54 2022 -0700
+
+    Parker done
+
+ src/InnReservations.java | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+commit bc1e9750c33e83c9ee434eca0dc8386a1524b69f
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 23:12:37 2022 -0700
+
+    YAY
+
+ src/InnReservations.java | 25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
+
+commit 091d946b86bee0f76a005ebd7177335d9cf85d40
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 23:00:17 2022 -0700
+
+    Working room code num for query
+
+ src/InnReservations.java | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+commit 224dcc4fdc870bf79808ba06b981572e3953b64e
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 22:53:34 2022 -0700
+
+    Made extra if statement
+
+ src/InnReservations.java | 96 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 50 insertions(+), 46 deletions(-)
+
+commit 588d6ef9605116cc71f05f580e38b4fd5bdd0c96
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 22:45:30 2022 -0700
+
+    Finished the freaking fracking reservartions
+
+ src/InnReservations.java | 84 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 46 insertions(+), 38 deletions(-)
+
+commit afaa531f07ce1c7fdc2698e9e97ff48a9c927c35
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 19:17:29 2022 -0700
+
+    Current code with to do comments
+
+ src/InnReservations.java | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+commit f3f061c3802dca8ae5c8a1ffa751eb24da85525c
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 19:14:50 2022 -0700
+
+    Added changes that messed everything up
+
+ src/InnReservations.java | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+commit f6d527020b23963ec19d50ebebc4d8a8f1b65b09
+Merge: 18a6b66 9ce9196
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 19:09:49 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+    
+     Conflicts:
+    	src/InnReservations.java
+
+commit 18a6b665e69ad6fee8091acd327dc1f186b3cfd5
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 19:09:21 2022 -0700
+
+    Finished the matrix structure for obtaining values. Fixed
+
+ src/InnReservations.java | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 9ce9196faa217ebcaae509d378f7d1c64d0756d4
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 19:08:53 2022 -0700
+
+    Changing res query
+
+ src/InnReservations.java | 106 +++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 94 insertions(+), 12 deletions(-)
+
+commit 8bdc00837193c9170837ddbfcfb41c9e2d41115d
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 18:33:06 2022 -0700
+
+    Finished the matrix structure for obtaining values
+
+ out/production/365Lab7/InnReservations.class | Bin 18602 -> 22493 bytes
+ src/InnReservations.java                     |  40 +++++++++++++++++++--------
+ 2 files changed, 29 insertions(+), 11 deletions(-)
+
+commit ab61fa18290a24359a817bf98a11096f5fdfb6a7
+Merge: 6cc7131 c583f25
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 17:07:39 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+    
+     Conflicts:
+    	src/InnReservations.java
+
+commit 6cc7131b1309005b6260e767eb6cd836abcc29c9
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 17:06:41 2022 -0700
+
+    Before Pull
+
+ out/production/365Lab7/InnReservations.class | Bin 20178 -> 18602 bytes
+ src/InnReservations.java                     | 215 ++++++++++++++-------------
+ 2 files changed, 114 insertions(+), 101 deletions(-)
+
+commit c583f25de5c320f7278c2978d8140912b0e6ef63
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 8 17:02:59 2022 -0700
+
+    Reservation match and suggest
+
+ src/InnReservations.java | 161 +++++++++++++++++++++++++++--------------------
+ 1 file changed, 94 insertions(+), 67 deletions(-)
+
+commit 9c96c5aa8ed560e92f1ca1b32e9587e4827bf2a5
+Merge: 2157d04 223bdde
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 01:45:43 2022 -0700
+
+    Merge remote-tracking branch 'origin/main' into main
+
+commit 2157d04b2a62ee08fd5c2a315816dde650de164e
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 8 01:44:00 2022 -0700
+
+    Finished Reservation Update
+
+ out/production/365Lab7/InnReservations.class | Bin 18184 -> 20178 bytes
+ src/InnReservations.java                     | 204 ++++++++++-----------------
+ 2 files changed, 75 insertions(+), 129 deletions(-)
+
+commit 962993e23ec87b07a9512c51c19e30150ed37b93
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Tue Jun 7 22:57:34 2022 -0700
+
+    Reservation Modification works without involving dates, need to test being able to change dates with constraint checking
+
+ out/production/365Lab7/InnReservations.class | Bin 10466 -> 18184 bytes
+ src/InnReservations.java                     | 183 ++++++++++++++++++---------
+ 2 files changed, 122 insertions(+), 61 deletions(-)
+
+commit 223bddea5b4ad84098677a3f215aaa1ba0cee845
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 20:02:23 2022 -0700
+
+    set up for question 2
+
+ src/InnReservations.java | 119 +++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 88 insertions(+), 31 deletions(-)
+
+commit 9ff6dfb467e60f651640eed9c30137ff36cc729e
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 14:47:31 2022 -0700
+
+    Fixed printing
+
+ src/InnReservations.java | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+commit 999a4c9ca34ea63c8c1364d147479056c9ae4150
+Merge: 57abad5 066cd42
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Tue Jun 7 14:17:18 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+
+commit 57abad5adc31d7bb5016afe2799532605e8bb53a
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Tue Jun 7 14:17:09 2022 -0700
+
+    useless commit
+
+ out/production/365Lab7/InnReservations.class | Bin 9886 -> 10466 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+commit 066cd427fad0291f2a776c9d99ffe88688715a38
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 12:53:28 2022 -0700
+
+    Finished FR 6 in bad bad long long way but it works
+
+ src/InnReservations.java | 197 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 195 insertions(+), 2 deletions(-)
+
+commit 5ebc91e73bec107c5427cae23c0c389242d184fd
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 11:31:46 2022 -0700
+
+    Fixed some issues with FR 5
+
+ src/InnReservations.java | 15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
+
+commit 54fb24b033687d1ce0153673d584ebaf6f85ef20
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 11:26:53 2022 -0700
+
+    Finished FR 5
+
+ src/InnReservations.java | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+commit 37c2cf35ae868094aacf79f05884ded2f4eb2e2d
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 11:18:09 2022 -0700
+
+    Detailed Info Done - still need to add optional date
+
+ src/InnReservations.java | 41 +++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 4 deletions(-)
+
+commit ab89953c37e663968737d1a755b4f04db29a625a
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Tue Jun 7 09:57:19 2022 -0700
+
+    Created query and set up for detailed reservation info
+
+ src/InnReservations.java | 89 +++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 77 insertions(+), 12 deletions(-)
+
+commit dfea07c47adf8b3f8627c2301b4c59d80c49f783
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Mon Jun 6 02:30:46 2022 -0700
+
+    Got very far with modify reservation. Couldn't get the Local Date objects to convert to Java Date objects, and havent done any checks for invalid new check ins and outs.
+
+ out/production/365Lab7/InnReservations.class | Bin 8272 -> 9886 bytes
+ src/InnReservations.java                     | 128 +++++++++++++++++++++++++++
+ 2 files changed, 128 insertions(+)
+
+commit df8018566d581c12eefb0b42dbe654485f5b31a1
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Mon Jun 6 01:19:43 2022 -0700
+
+    Finished FR4: Reservation Cancellation
+
+ out/production/365Lab7/InnReservations.class | Bin 4622 -> 8272 bytes
+ src/InnReservations.java                     | 119 +++++++++++++++++++++------
+ 2 files changed, 94 insertions(+), 25 deletions(-)
+
+commit c1161bbad35ad81cb091d622c3e08edf81b5cad3
+Merge: a1683de bbb217c
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Sun Jun 5 23:46:42 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+
+commit a1683de733f1ea4c4b38299330acd27cb0623b78
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Sun Jun 5 23:46:35 2022 -0700
+
+    Rico changes - not useful
+
+ src/InnReservations.java | 43 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 40 insertions(+), 3 deletions(-)
+
+commit bbb217c90d77c0bbc859f1ce287299b797f940b7
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Sun Jun 5 23:42:27 2022 -0700
+
+    Fixed formating for R1
+
+ src/InnReservations.java | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+commit ac61d8001a58e2b19b2df67b6654b5c88e7d471d
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Sun Jun 5 23:24:39 2022 -0700
+
+    Completed R1 query
+
+ src/InnReservations.java | 73 ++++++++++++++++++++++++------------------------
+ 1 file changed, 37 insertions(+), 36 deletions(-)
+
+commit c401d8e0ecb6898c088b4a07c67704260ed35beb
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Sun Jun 5 23:01:31 2022 -0700
+
+    Changed to prepared statements
+
+ src/InnReservations.java | 51 ++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 43 insertions(+), 8 deletions(-)
+
+commit 2204429888f9c86965e8a6a35812f73f199a1874
+Merge: 56027b4 169186a
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Sun Jun 5 17:47:19 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+    
+     Conflicts:
+    	src/InnReservations.java
+
+commit 56027b4ad215b5d4c1b0d28c72ff2e8b5ae53936
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Sun Jun 5 17:44:39 2022 -0700
+
+    Committing jar file
+
+ mysql-connector-java-8.0.16.jar | Bin 0 -> 2293144 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+commit 4acbadf4e10cd2984f17a62538686ed99391a967
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Sun Jun 5 17:42:58 2022 -0700
+
+    Commit before pull
+
+ src/InnReservations.java | 41 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
+
+commit 169186affada05694e6a347ca821f4b00cc3cda0
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Sat Jun 4 16:26:24 2022 -0700
+
+    Changed methods to private
+
+ src/InnReservations.java | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+commit 0990e853acac65ee6db5d746e409f347fc5e1cd5
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Sat Jun 4 16:16:05 2022 -0700
+
+    Intial set up
+
+ README                   | 17 +++++++++++++++++
+ src/InnReservations.java | 44 ++++++++++++++++++++++++++++----------------
+ 2 files changed, 45 insertions(+), 16 deletions(-)
+
+commit 7047eaef663fc395f04ca15a00d829d6727b7533
+Merge: c42508f a23edff
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 1 17:07:53 2022 -0700
+
+    Parkers messed up things oops
+
+commit a23edff5decd6ba0365c5a0e9b1127180b2d0889
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 17:06:38 2022 -0700
+
+    Able to print out contents from a column in our remote RDBMS.
+
+ .idea/libraries/mysql_connector_java_8_0_16.xml |   9 +++
+ 365Lab7.iml                                     |   1 +
+ out/production/365Lab7/InnReservations.class    | Bin 2121 -> 4622 bytes
+ src/InnReservations.java                        | 101 ++++++++++++++++++------
+ 4 files changed, 85 insertions(+), 26 deletions(-)
+
+commit c42508f0657278bf41a4d38526c0b9de6a563488
+Merge: 5a7fc34 ce9bb36
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 1 16:18:28 2022 -0700
+
+    Parker's set up
+
+commit 5a7fc34e3a56f11609457e2c180e90c2e893b068
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 1 16:17:07 2022 -0700
+
+    Setting up JAR
+
+ .idea/libraries/mysql_connector_java_8_0_16.xml |   9 +++++++++
+ mysql-connector-java-8.0.16.jar                 | Bin 0 -> 2293144 bytes
+ 2 files changed, 9 insertions(+)
+
+commit ce9bb362436a2118a73ccd50f54c608c6ff146ef
+Merge: 87d509a cdb0737
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 16:15:31 2022 -0700
+
+    Merge remote-tracking branch 'origin/main' into main
+
+commit 87d509a1942b216a933e27fcf0cfd1f8b1483eb4
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 16:15:19 2022 -0700
+
+    Created basic skeleton for prompting and exiting based on user input.
+
+ out/production/365Lab7/.idea/.gitignore            |   3 -
+ out/production/365Lab7/.idea/misc.xml              |   6 --
+ out/production/365Lab7/.idea/modules.xml           |   8 ---
+ out/production/365Lab7/.idea/runConfigurations.xml |  10 ---
+ out/production/365Lab7/.idea/vcs.xml               |   6 --
+ out/production/365Lab7/365Lab7.iml                 |  11 ----
+ out/production/365Lab7/InnReservations.class       | Bin 548 -> 2121 bytes
+ out/production/365Lab7/README.md                   |   2 -
+ src/InnReservations.java                           |  71 ++++++++++++++++++++-
+ 9 files changed, 70 insertions(+), 47 deletions(-)
+
+commit cdb0737c647f0ab3f7a39a3a03e5cdbdefd49799
+Author: Ricardo Beltran <45570556+RBeltran12358@users.noreply.github.com>
+Date:   Wed Jun 1 15:01:06 2022 -0700
+
+    Update README.md
+
+ README.md | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+commit 3a571530c0840260ef5c16dedcae5da4ac13a5d6
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 14:56:57 2022 -0700
+
+    Added env variables
+
+ src/InnReservations.java | 4 ----
+ 1 file changed, 4 deletions(-)
+
+commit f3301183ea8e727587323ca3738761461f610cb5
+Merge: 6348895 3885e7d
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 13:32:27 2022 -0700
+
+    Merge branch 'main' of https://github.com/RBeltran12358/365Lab7 into main
+    
+     Conflicts:
+    	.idea/.gitignore
+    	.idea/misc.xml
+    	365Lab7.iml
+
+commit 6348895484388f1b773632193b0c0d4b6a94cb37
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 13:32:18 2022 -0700
+
+    Changes 2
+
+ .idea/.gitignore                                   |   3 +++
+ .idea/misc.xml                                     |   6 ++++++
+ .idea/modules.xml                                  |   8 ++++++++
+ .idea/runConfigurations.xml                        |  10 ++++++++++
+ .idea/vcs.xml                                      |   6 ++++++
+ 365Lab7.iml                                        |  11 +++++++++++
+ out/production/365Lab7/.idea/.gitignore            |   3 +++
+ out/production/365Lab7/.idea/misc.xml              |   6 ++++++
+ out/production/365Lab7/.idea/modules.xml           |   8 ++++++++
+ out/production/365Lab7/.idea/runConfigurations.xml |  10 ++++++++++
+ out/production/365Lab7/.idea/vcs.xml               |   6 ++++++
+ out/production/365Lab7/365Lab7.iml                 |  11 +++++++++++
+ out/production/365Lab7/InnReservations.class       | Bin 0 -> 548 bytes
+ out/production/365Lab7/README.md                   |   2 ++
+ 14 files changed, 90 insertions(+)
+
+commit 159b403fede30e858a31b7d5933a5647f887b8cc
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 13:31:50 2022 -0700
+
+    Changes 2
+
+ InnReservations.java | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+commit 3885e7daaefb2ece8564a4b836006dc9aa96528c
+Author: plandsman11 <parker.rey@gmail.com>
+Date:   Wed Jun 1 13:29:39 2022 -0700
+
+    Testing different set up
+
+ .idea/$CACHE_FILE$                               | 95 ++++++++++++++++++++++++
+ .idea/.gitignore                                 |  2 +
+ .idea/misc.xml                                   |  6 ++
+ .idea/modules.xml                                |  8 ++
+ .idea/vcs.xml                                    |  6 ++
+ 365Lab7.iml                                      | 11 +++
+ InnReservations.java => src/InnReservations.java |  0
+ 7 files changed, 128 insertions(+)
+
+commit a210881c5229d0ae34cf550a6018c959fca66241
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 13:25:29 2022 -0700
+
+    Changes
+
+ InnReservations.java | 8 ++++----
+ main.java            | 3 ---
+ 2 files changed, 4 insertions(+), 7 deletions(-)
+
+commit efa074ad4e3e656015925f41b301be908014a790
+Author: RBeltran12358 <Ricardo.beltran12358@gmail.com>
+Date:   Wed Jun 1 11:25:38 2022 -0700
+
+    Added first classes
+
+ InnReservations.java | 5 +++++
+ main.java            | 3 +++
+ 2 files changed, 8 insertions(+)
+
+commit 371cb9985ff5c61dff95e391630282d7f8fedee4
+Author: Ricardo Beltran <45570556+RBeltran12358@users.noreply.github.com>
+Date:   Wed Jun 1 11:20:27 2022 -0700
+
+    Initial commit
+
+ README.md | 2 ++
+ 1 file changed, 2 insertions(+)
