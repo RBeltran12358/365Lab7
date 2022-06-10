@@ -1,8 +1,11 @@
-Lab Completed By Parker Landsman and Ricardo Beltran
+Lab 7 Completed By Parker Landsman and Ricardo Beltran
+
 
 How to compile and run our program from the command line:
 
-The URL, username, and password must be provided to the application using shell environment variables.
+> cd 365Lab7/src
+> javac InnReservations.java
+> java InnReservations
 
 
 The environment variable used:
@@ -12,6 +15,6 @@ HP_JDBC_USER – Cal Poly username
 HP_JDBC_PW – the password used to access the Lab 365 website
 
 
-DO WE HAVE TO PUT OUR credentials here??
-
 Extra Info:
+- Correct spelling matters for option and value input. (ie. Must type 'none' exactly for option to read).
+- Enjoy !! :)

@@ -19,7 +19,6 @@ public class InnReservations {
 
     private static void RoomsAndRates() throws SQLException{
         loadDriver();
-
         // Step 1: Establish connection to RDBMS
         try (Connection conn = DriverManager.getConnection(System.getenv("HP_JDBC_URL"),
                 System.getenv("HP_JDBC_USER"),
@@ -57,14 +56,14 @@ public class InnReservations {
                 ResultSetMetaData rsmd = res.getMetaData();
                 int colCount = rsmd.getColumnCount();
 
-                for (int i = 1; i < colCount; i++)
+                for (int i = 1; i <= colCount; i++)
                     System.out.printf("%-30s", rsmd.getColumnName(i));
 
                 System.out.println("");
 
                 while (res.next()) {
                     System.out.println("");
-                    for (int i = 1; i < colCount; i++)
+                    for (int i = 1; i <= colCount; i++)
                         System.out.printf("%-30s", res.getString(i));
                 }
 
@@ -162,7 +161,7 @@ public class InnReservations {
 
             if(maxOcc >= desired_ocp && !dateConflict ) {
                 // Step 2: Construct SQL statement
-                String sqlMatchQuery = "SELECT room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, NextAvailableCheckInDate, SuggestedCheckOut, AvailableStatus, Priority\n" +
+                String sqlMatchQuery = "SELECT room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, NextAvailableCheckInDate, SuggestedCheckOut, Priority\n" +
                         "from \n" +
                         "    ((select room, RoomName, Beds, BedType, MaxOcc, BasePrice, Decor, ? as NextAvailableCheckInDate, ? as SuggestedCheckOut,\n" +
                         "        case roomname in (\n" +
@@ -214,12 +213,12 @@ public class InnReservations {
                     if(room_code.equals("any"))
                         pstmt.setString(7, "%");
                     else
-                        pstmt.setString(7, room_code);
+                        pstmt.setString(7, "%" + room_code+ "%");
 
                     if(bed_type.equals("any"))
                         pstmt.setString(8, "%");
                     else
-                        pstmt.setString(8, bed_type);
+                        pstmt.setString(8, "%" + bed_type + "%");
 
                     pstmt.setInt(9, desired_ocp);
                     pstmt.setDate(10, java.sql.Date.valueOf(checkOut));
@@ -233,7 +232,7 @@ public class InnReservations {
 
                     System.out.println("");
                     System.out.print("  ");
-                    for (int i = 1; i < count; i++)
+                    for (int i = 1; i <= count; i++)
                         System.out.printf("%-30s", rsmd.getColumnName(i));
                     System.out.println("");
 
@@ -241,7 +240,7 @@ public class InnReservations {
                     while (res.next()) {
                         System.out.println();
                         System.out.print((y + 1) + " ");
-                        for (int i = 1; i < count; i++) {
+                        for (int i = 1; i <= count; i++) {
                             String val = res.getString(i);
                             results[y][i - 1] = val;
                             System.out.printf("%-30s", val);
@@ -269,10 +268,12 @@ public class InnReservations {
                     System.out.println("First Name: " + f_name);
                     System.out.println("Last Name: " + l_name);
                     System.out.println("Room Code: " + results[chosenRoom][0]);
+                    System.out.println("Room Name: " + results[chosenRoom][1]);
+                    System.out.println("Bed Type: " + results[chosenRoom][3]);
                     System.out.println("Check In Date: " + results[chosenRoom][7]);
                     System.out.println("Check Out Date: " + results[chosenRoom][8]);
-                    System.out.println("Number of children: " + num_children);
                     System.out.println("Number of adults: " + num_adults);
+                    System.out.println("Number of children: " + num_children);
                     System.out.println("Total cost of stay: " + totalPrice);
 
                     System.out.print("\n\nTo confirm booking reservation, enter confirm. " +
@@ -306,18 +307,17 @@ public class InnReservations {
                         System.out.println("Your confirmation code is: " + newReservationCode);
 
                         try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertQuery)) {
-                            //Inject values to insert
 
-                            //update again based on the new query
-                            pstmt.setInt(1, newReservationCode); // new code
-                            pstmt.setString(2, results[chosenRoom][0]); //room
-                            pstmt.setString(3, results[chosenRoom][7]); //check in
-                            pstmt.setString(4, results[chosenRoom][8]); // checkout
-                            pstmt.setString(5, String.valueOf(totalPrice / lengthOfRes)); //rate
-                            pstmt.setString(6, l_name); // last name
-                            pstmt.setString(7, f_name); // first name
-                            pstmt.setString(8, num_adults); // adults
-                            pstmt.setString(9, num_children); // children
+                            //Inject values to insert
+                            pstmt.setInt(1, newReservationCode);
+                            pstmt.setString(2, results[chosenRoom][0]);
+                            pstmt.setString(3, results[chosenRoom][7]);
+                            pstmt.setString(4, results[chosenRoom][8]);
+                            pstmt.setString(5, String.valueOf(totalPrice / lengthOfRes));
+                            pstmt.setString(6, l_name);
+                            pstmt.setString(7, f_name);
+                            pstmt.setString(8, num_adults);
+                            pstmt.setString(9, num_children);
 
                             int rowCount = pstmt.executeUpdate();
 
@@ -428,7 +428,7 @@ public class InnReservations {
 
                     // Step 5: Handle results
                     while (res.next()) {
-                        for (int i = 1; i < colCount + 1; i++)
+                        for (int i = 1; i <= colCount + 1; i++)
                             vals.add(res.getString(i));
                     }
 
@@ -563,7 +563,7 @@ public class InnReservations {
                     if (rowCount == 0)
                         System.out.println("\nReservation Code not found in our records.");
                     else
-                        System.out.format("Successfully updated reservation.");
+                        System.out.println("\nSuccessfully updated reservation.");
 
                     // Step 6: Commit or rollback transaction
                     conn.commit();
@@ -621,12 +621,12 @@ public class InnReservations {
             try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
                 // Inject field values
                 if(!f_name.equals("any"))
-                    pstmt.setString(1, "%" + f_name);
+                    pstmt.setString(1, "%" + f_name + "%");
                 else
                     pstmt.setString(1, "%");
 
                 if(!l_name.equals("any"))
-                    pstmt.setString(2, "%" + l_name);
+                    pstmt.setString(2, "%" + l_name + "%");
                 else
                     pstmt.setString(2, "%");
 
@@ -641,12 +641,12 @@ public class InnReservations {
                     pstmt.setString(4, "%");
 
                 if(!room_code.equals("any"))
-                    pstmt.setString(5, "%" + room_code);
+                    pstmt.setString(5, "%" + room_code + "%");
                 else
                     pstmt.setString(5, "%");
 
                 if(!room_code.equals("any"))
-                    pstmt.setString(6, "%" + res_code);
+                    pstmt.setString(6, "%" + res_code + "%");
                 else
                     pstmt.setString(6, "%");
 
@@ -667,6 +667,7 @@ public class InnReservations {
                 }
 
                 // Step 6: Commit or rollback transaction
+                System.out.println();
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
@@ -847,14 +848,15 @@ public class InnReservations {
                 ResultSetMetaData rsmd = res.getMetaData();
                 int colCount = rsmd.getColumnCount();
 
-                for (int i = 1; i < colCount; i++) {
+                for (int i = 1; i <= colCount; i++) {
                     System.out.printf("%-30s", rsmd.getColumnName(i));
                 }
 
                 System.out.println("");
 
                 while (res.next()) {
-                    for (int i = 1; i < colCount; i++) {
+                    System.out.println();
+                    for (int i = 1; i <= colCount; i++) {
                         System.out.printf("%-30s", res.getString(i));
                     }
                 }
@@ -871,8 +873,6 @@ public class InnReservations {
     }
 
     private static void printIntro() {
-        System.out.println("Welcome to our database!");
-        System.out.println("To select an option from the list below, type the number to its right and press Enter\n");
         System.out.println("1:\tRooms and Rates");
         System.out.println("2:\tReservations");
         System.out.println("3:\tReservation Change");
@@ -886,10 +886,14 @@ public class InnReservations {
         Scanner in = new Scanner(System.in);
         int response = 7;
         InnReservations ir = new InnReservations();
-        printIntro();
-        System.out.print("Select a command (1-7): ");
+        System.out.println("Welcome to our database!");
+        System.out.println("To select an option from the list below, type the number to its right and press Enter\n");
+
 
         while(true){
+            System.out.println("\nSelect a command (1-7): ");
+            printIntro();
+            System.out.print("> ");
             try {
                 response = in.nextInt();
                 if(response == 1){
@@ -909,7 +913,6 @@ public class InnReservations {
                 }else{
                     System.out.println("Number not in range of options");
                 }
-                System.out.print("\n\nSelect a command (1-7): ");
             }
             catch (SQLException e) {
                 System.err.println("SQLException: " + e.getMessage());
