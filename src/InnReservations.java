@@ -261,12 +261,10 @@ public class InnReservations {
 
                 if(answer.equals("1") | answer.equals("2") | answer.equals("3") | answer.equals("4") | answer.equals("5")) {
 
-                    // TO DO: update the chosen room to be the room chosen
                     int chosenRoom = Integer.parseInt(answer) - 1;
                     double totalPrice = getCostOfStay(LocalDate.parse(results[chosenRoom][7]), LocalDate.parse(results[chosenRoom][8]), Double.parseDouble(results[chosenRoom][5]))[0];
                     double lengthOfRes = getCostOfStay(LocalDate.parse(results[chosenRoom][7]), LocalDate.parse(results[chosenRoom][8]), Double.parseDouble(results[chosenRoom][5]))[1];
 
-                    //TO DO: ADD Confirmation page print out here
                     System.out.println("\nConfirmation Page for selected option: " + (chosenRoom + 1) + "\n");
                     System.out.println("First Name: " + f_name);
                     System.out.println("Last Name: " + l_name);
@@ -410,10 +408,7 @@ public class InnReservations {
                 conn.rollback();
             }
 
-            // Check for dates where checkin is after or same time as checkout
-            boolean dateConflict = LocalDate.parse(checkOutStr).isBefore(LocalDate.parse(checkInStr)) || LocalDate.parse(checkInStr).isEqual(LocalDate.parse(checkOutStr));
-
-            if (maxOcc >= desired_ocp && !dateConflict ){
+            if (maxOcc >= desired_ocp){
                 // Step 2: Construct SQL statement
                 String sqlStmt = "UPDATE rbeltr01.lab7_reservations SET FirstName = ?, LastName = ?, Kids = ?, Adults = ?, CheckIn = ?, Checkout = ? WHERE CODE = ?";
 
@@ -469,56 +464,65 @@ public class InnReservations {
 
                     if (checkInStr.equals("none")) {
                         checkInStr = vals.get(2);
-                        conflicts_sqlStmt += "(CheckIn > ? and CheckIn < ?)";
+                        conflicts_sqlStmt += "((CheckIn > ? and CheckIn < ?)";
                     } else{
-                        conflicts_sqlStmt += "(CheckIn >= ? and CheckIn < ?)";
+                        conflicts_sqlStmt += "((CheckIn >= ? and CheckIn < ?)";
                     }
                     pstmt.setDate(5, java.sql.Date.valueOf(checkInStr));
 
                     if (checkOutStr.equals("none")){
                         checkOutStr = vals.get(3);
-                        conflicts_sqlStmt += " or (Checkout > ? and Checkout < ?) ";
+                        conflicts_sqlStmt += " or (Checkout > ? and Checkout < ?)) ";
                     } else {
-                        conflicts_sqlStmt +=  " or (Checkout > ? and Checkout <= ?) ";
+                        conflicts_sqlStmt +=  " or (Checkout > ? and Checkout <= ?)) ";
                     }
+
+                    conflicts_sqlStmt += "and Room = (select Room from rbeltr01.lab7_reservations where CODE = ?) and CODE <> ?";
                     pstmt.setDate(6, java.sql.Date.valueOf(checkOutStr));
 
                     pstmt.setInt(7, Integer.parseInt(res_code));
 
-                    try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
-                        conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
-                        conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
-                        conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
-                        conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
-                        ResultSet res = conflicts_pstmt.executeQuery();
-                        int count = 0;
-                        while (res.next())
-                            count++;
+                    // Check for dates where checkin is after or same time as checkout
+                    boolean dateConflict = LocalDate.parse(checkOutStr).isBefore(LocalDate.parse(checkInStr)) || LocalDate.parse(checkInStr).isEqual(LocalDate.parse(checkOutStr));
+                    if(!dateConflict){
+                        try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
+                            conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
+                            conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
+                            conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
+                            conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
+                            conflicts_pstmt.setInt(5, Integer.parseInt(res_code));
+                            conflicts_pstmt.setInt(6, Integer.parseInt(res_code));
 
-                        // Step 5: Handle results
-                        if (count > 0){
-                            System.out.println("Error: Dates conflicting with existing reservations");
-                        } else {
-                            // Step 4: Send SQL statement to DBMS
-                            int rowCount = pstmt.executeUpdate();
+                            ResultSet res = conflicts_pstmt.executeQuery();
+                            int count = 0;
+                            while (res.next())
+                                count++;
 
                             // Step 5: Handle results
-                            if (rowCount == 0)
-                                System.out.println("\nReservation Code not found in our records. Please try again");
-                            else{
-                                System.out.format("Successfully updated reservation");
+                            if (count > 0){
+                                System.out.println("Error: Dates conflicting with existing reservations");
+                            } else {
+                                // Step 4: Send SQL statement to DBMS
+                                int rowCount = pstmt.executeUpdate();
+
+                                // Step 5: Handle results
+                                if (rowCount == 0)
+                                    System.out.println("\nReservation Code not found in our records. Please try again");
+                                else{
+                                    System.out.format("Successfully updated reservation");
+                                }
+                                // Step 6: Commit or rollback transaction
+                                conn.commit();
                             }
-                            // Step 6: Commit or rollback transaction
-                            conn.commit();
+                        } catch (SQLException e) {
+                            conn.rollback();
                         }
-                    } catch (SQLException e) {
-                        conn.rollback();
+                    } else {
+                        System.out.println("The requested CheckIn and Checkout dates conflict with each other(Checkout before CheckIn or same date)\nPlease try again. ");
                     }
                 } catch (SQLException e) {
                     conn.rollback();
                 }
-            } else if(maxOcc >= desired_ocp){
-                System.out.println("The requested CheckIn and Checkout dates conflict with each other(Checkout before CheckIn or same date)\nPlease try again. ");
             } else {
                 System.out.println("The requested person count (children plus adults) exceeds the maximum capacity of the reservation's room.");
             }
