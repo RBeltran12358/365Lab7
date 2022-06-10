@@ -11,7 +11,6 @@ public class InnReservations {
         // Step 0: Load MySQL JDBC Driver
         try{
             Class.forName("com.mysql.jdbc.Driver");
-            System.out.println("MySQL JDBC Driver loaded\n");
         } catch (ClassNotFoundException ex) {
             System.err.println("Unable to load JDBC Driver");
             System.exit(-1);
@@ -88,7 +87,6 @@ public class InnReservations {
         while(!temp.isEqual(checkOut)){
             DayOfWeek day = DayOfWeek.of(temp.get(ChronoField.DAY_OF_WEEK));
             boolean isWeekend = day == DayOfWeek.SUNDAY || day == DayOfWeek.SATURDAY;
-
             // check if weekend
             if(isWeekend){
                 numWeekendDays++;
@@ -97,9 +95,6 @@ public class InnReservations {
             }
             temp = temp.plusDays(1);
         }
-
-        System.out.println("Weekdays: " + numWeekDays);
-        System.out.println("Weekend: " + numWeekendDays);
         ret[0] = (numWeekDays * baseprice) + (numWeekendDays * (1.1 * baseprice));
         ret[1] = numWeekDays+numWeekendDays;
         return ret;
@@ -388,111 +383,144 @@ public class InnReservations {
             System.out.print("What's the updated number of adults? ");
             String numAdults = scanner.nextLine();
 
-            // Step 2: Construct SQL statement
-            String sqlStmt = "UPDATE rbeltr01.lab7_reservations SET FirstName = ?, LastName = ?, Kids = ?, Adults = ?, CheckIn = ?, Checkout = ? WHERE CODE = ?";
+            int desired_ocp = Integer.parseInt(numChildren) + Integer.parseInt(numAdults);
 
-            // Step 2: Construct SQL statement for
-            String sqlStmtBase = "select * from rbeltr01.lab7_reservations WHERE CODE = ?";
+            int maxOcc = -1;
 
-            // Step 3: Start transaction
             conn.setAutoCommit(false);
 
-            // Run query to get the current values of reservation
-            try (PreparedStatement base_pstmt = conn.prepareStatement(sqlStmtBase)) {
-                // Step 4: Send SQL statement to DBMS
-                base_pstmt.setInt(1, Integer.parseInt(res_code));
-                ResultSet res = base_pstmt.executeQuery();
+            String sqlMaxOccQuery = "select maxOcc from lab7_rooms \n" +
+                    "where RoomCode = (select Room from rbeltr01.lab7_reservations \n" +
+                    "                WHERE CODE = ?)";
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlMaxOccQuery)) {
+                pstmt.setInt(1, Integer.parseInt(res_code));
+                ResultSet res = pstmt.executeQuery();
                 ResultSetMetaData rsmd = res.getMetaData();
                 int colCount = rsmd.getColumnCount();
-
                 // Step 5: Handle results
                 while (res.next()) {
-                    for (int i = 1; i < colCount + 1; i++)
-                        vals.add(res.getString(i));
+                    for (int i = 1; i < colCount + 1; i++){
+                        maxOcc = Integer.parseInt(res.getString(1));
+                    }
                 }
-
                 // Step 6: Commit or rollback transaction
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
             }
 
-            // Step 3: Start transaction
-            conn.setAutoCommit(false);
+            // Check for dates where checkin is after or same time as checkout
+            boolean dateConflict = LocalDate.parse(checkOutStr).isBefore(LocalDate.parse(checkInStr)) || LocalDate.parse(checkInStr).isEqual(LocalDate.parse(checkOutStr));
 
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
-                // Step 4: Send SQL statement to DBMS
+            if (maxOcc >= desired_ocp && !dateConflict ){
+                // Step 2: Construct SQL statement
+                String sqlStmt = "UPDATE rbeltr01.lab7_reservations SET FirstName = ?, LastName = ?, Kids = ?, Adults = ?, CheckIn = ?, Checkout = ? WHERE CODE = ?";
 
-                if(firstName.equals("none"))
-                    firstName = vals.get(6);
-                pstmt.setString(1, firstName);
+                // Step 2: Construct SQL statement for
+                String sqlStmtBase = "select * from rbeltr01.lab7_reservations WHERE CODE = ?";
 
-                if(lastName.equals("none"))
-                    firstName = vals.get(5);
-                pstmt.setString(2, lastName);
+                // Step 3: Start transaction
+                conn.setAutoCommit(false);
 
-                if (numChildren.equals("none"))
-                    numChildren = vals.get(8);
-                pstmt.setInt(3, Integer.parseInt(numChildren));
-
-                if (numAdults.equals("none"))
-                    numAdults = vals.get(7);
-                pstmt.setInt(4, Integer.parseInt(numAdults));
-
-                String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations where ";
-
-                if (checkInStr.equals("none")) {
-                    checkInStr = vals.get(2);
-                    conflicts_sqlStmt += "(CheckIn > ? and CheckIn < ?)";
-                } else{
-                    conflicts_sqlStmt += "(CheckIn >= ? and CheckIn < ?)";
-                }
-                pstmt.setDate(5, java.sql.Date.valueOf(checkInStr));
-
-                if (checkOutStr.equals("none")){
-                    checkOutStr = vals.get(3);
-                    conflicts_sqlStmt += " or (Checkout > ? and Checkout < ?) ";
-                } else {
-                    conflicts_sqlStmt +=  " or (Checkout > ? and Checkout <= ?) ";
-                }
-                pstmt.setDate(6, java.sql.Date.valueOf(checkOutStr));
-
-                pstmt.setInt(7, Integer.parseInt(res_code));
-
-                try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
-                    conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
-                    conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
-                    conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
-                    conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
-                    System.out.println("About to execute search for conflicts with \n" + conflicts_pstmt);
-
-                    ResultSet res = conflicts_pstmt.executeQuery();
-                    int count = 0;
-                    while (res.next())
-                        count++;
+                // Run query to get the current values of reservation
+                try (PreparedStatement base_pstmt = conn.prepareStatement(sqlStmtBase)) {
+                    // Step 4: Send SQL statement to DBMS
+                    base_pstmt.setInt(1, Integer.parseInt(res_code));
+                    ResultSet res = base_pstmt.executeQuery();
+                    ResultSetMetaData rsmd = res.getMetaData();
+                    int colCount = rsmd.getColumnCount();
 
                     // Step 5: Handle results
-                    if (count > 0){
-                        System.out.println("Error: Dates conflicting with existing reservations");
-                    } else {
-                        // Step 4: Send SQL statement to DBMS
-                        int rowCount = pstmt.executeUpdate();
-
-                        // Step 5: Handle results
-                        if (rowCount == 0)
-                            System.out.println("\nReservation Code not found in our records. Please try again");
-                        else{
-                            System.out.format("Successfully updated reservation");
-                        }
-                        // Step 6: Commit or rollback transaction
-                        conn.commit();
+                    while (res.next()) {
+                        for (int i = 1; i < colCount + 1; i++)
+                            vals.add(res.getString(i));
                     }
+
+                    // Step 6: Commit or rollback transaction
+                    conn.commit();
                 } catch (SQLException e) {
-                    System.out.println("\nRollbackkkkkkkk");
                     conn.rollback();
                 }
-            } catch (SQLException e) {
-                conn.rollback();
+
+                // Step 3: Start transaction
+                conn.setAutoCommit(false);
+
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlStmt)) {
+                    // Step 4: Send SQL statement to DBMS
+
+                    if(firstName.equals("none"))
+                        firstName = vals.get(6);
+                    pstmt.setString(1, firstName);
+
+                    if(lastName.equals("none"))
+                        firstName = vals.get(5);
+                    pstmt.setString(2, lastName);
+
+                    if (numChildren.equals("none"))
+                        numChildren = vals.get(8);
+                    pstmt.setInt(3, Integer.parseInt(numChildren));
+
+                    if (numAdults.equals("none"))
+                        numAdults = vals.get(7);
+                    pstmt.setInt(4, Integer.parseInt(numAdults));
+
+                    String conflicts_sqlStmt = "select * from rbeltr01.lab7_reservations where ";
+
+                    if (checkInStr.equals("none")) {
+                        checkInStr = vals.get(2);
+                        conflicts_sqlStmt += "(CheckIn > ? and CheckIn < ?)";
+                    } else{
+                        conflicts_sqlStmt += "(CheckIn >= ? and CheckIn < ?)";
+                    }
+                    pstmt.setDate(5, java.sql.Date.valueOf(checkInStr));
+
+                    if (checkOutStr.equals("none")){
+                        checkOutStr = vals.get(3);
+                        conflicts_sqlStmt += " or (Checkout > ? and Checkout < ?) ";
+                    } else {
+                        conflicts_sqlStmt +=  " or (Checkout > ? and Checkout <= ?) ";
+                    }
+                    pstmt.setDate(6, java.sql.Date.valueOf(checkOutStr));
+
+                    pstmt.setInt(7, Integer.parseInt(res_code));
+
+                    try (PreparedStatement conflicts_pstmt = conn.prepareStatement(conflicts_sqlStmt)) {
+                        conflicts_pstmt.setDate(1, java.sql.Date.valueOf(checkInStr));
+                        conflicts_pstmt.setDate(2, java.sql.Date.valueOf(checkOutStr));
+                        conflicts_pstmt.setDate(3, java.sql.Date.valueOf(checkInStr));
+                        conflicts_pstmt.setDate(4, java.sql.Date.valueOf(checkOutStr));
+                        ResultSet res = conflicts_pstmt.executeQuery();
+                        int count = 0;
+                        while (res.next())
+                            count++;
+
+                        // Step 5: Handle results
+                        if (count > 0){
+                            System.out.println("Error: Dates conflicting with existing reservations");
+                        } else {
+                            // Step 4: Send SQL statement to DBMS
+                            int rowCount = pstmt.executeUpdate();
+
+                            // Step 5: Handle results
+                            if (rowCount == 0)
+                                System.out.println("\nReservation Code not found in our records. Please try again");
+                            else{
+                                System.out.format("Successfully updated reservation");
+                            }
+                            // Step 6: Commit or rollback transaction
+                            conn.commit();
+                        }
+                    } catch (SQLException e) {
+                        conn.rollback();
+                    }
+                } catch (SQLException e) {
+                    conn.rollback();
+                }
+            } else if(maxOcc >= desired_ocp){
+                System.out.println("The requested CheckIn and Checkout dates conflict with each other(Checkout before CheckIn or same date)\nPlease try again. ");
+            } else {
+                System.out.println("The requested person count (children plus adults) exceeds the maximum capacity of the reservation's room.");
             }
         }
     }
